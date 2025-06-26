@@ -115,41 +115,88 @@ const RewardsCart = forwardRef(function RewardsCart(props, ref) {
   return (
     <>
       {/* Botão flutuante para abrir o carrinho */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 z-50">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="lg" className="rounded-full shadow-lg px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold">
-              Carrinho ({cart.reduce((sum, ci) => sum + ci.quantity, 0)})
+            <Button size="lg" className="rounded-full shadow-lg px-4 lg:px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-sm lg:text-base">
+              <span className="hidden sm:inline">Carrinho </span>
+              ({cart.reduce((sum, ci) => sum + ci.quantity, 0)})
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="max-w-md w-full">
+          <SheetContent side="right" className="w-full sm:max-w-md">
             <SheetHeader>
               <SheetTitle>Seu Carrinho</SheetTitle>
             </SheetHeader>
             {cart.length === 0 ? (
               <div className="text-gray-400 p-4">Seu carrinho está vazio.</div>
             ) : (
-              <div className="space-y-2 p-2">
+              <div className="space-y-3 p-2 max-h-60 overflow-y-auto">
                 {cart.map(ci => (
-                  <div key={ci.id} className="flex items-center gap-2 border-b pb-2">
-                    <span className="flex-1">{ci.name} ({typeof ci.price === 'number' ? ci.price : ci.points} pts)</span>
-                    <Input type="number" min={1} value={ci.quantity} onChange={e => updateQuantity(ci.id, Number(e.target.value))} className="w-16" />
-                    <Button variant="outline" onClick={() => removeFromCart(ci.id)}>Remover</Button>
+                  <div key={ci.id} className="flex flex-col sm:flex-row sm:items-center gap-2 border-b pb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{ci.name}</div>
+                      <div className="text-xs text-gray-500">
+                        {typeof ci.price === 'number' ? ci.price : ci.points} pts
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        value={ci.quantity} 
+                        onChange={e => updateQuantity(ci.id, Number(e.target.value))} 
+                        className="w-16 h-8 text-xs"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => removeFromCart(ci.id)}
+                        className="text-xs"
+                      >
+                        Remover
+                      </Button>
+                    </div>
                   </div>
                 ))}
-                <div className="font-bold mt-2">Total: {getTotalPoints()} pontos</div>
+                <div className="font-bold mt-2 text-center sm:text-left">
+                  Total: {getTotalPoints()} pontos
+                </div>
               </div>
             )}
-            <form className="space-y-2 mt-4 p-2" onSubmit={e => { e.preventDefault(); handleRedeem(); }}>
-              <label className="block font-medium">CEP:</label>
-              <div className="flex gap-2">
-                <Input value={cep} onChange={e => setCep(e.target.value)} placeholder="Digite o CEP" className="w-40" />
-                <Button type="button" variant="outline" onClick={handleCepLookup}>Buscar</Button>
+            <form className="space-y-3 mt-4 p-2" onSubmit={e => { e.preventDefault(); handleRedeem(); }}>
+              <label className="block font-medium text-sm">CEP:</label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input 
+                  value={cep} 
+                  onChange={e => setCep(e.target.value)} 
+                  placeholder="Digite o CEP" 
+                  className="flex-1 text-sm"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCepLookup}
+                  className="w-full sm:w-auto text-sm"
+                >
+                  Buscar
+                </Button>
               </div>
-              <label className="block font-medium mt-2">Endereço para entrega:</label>
-              <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="Endereço completo" required />
+              <label className="block font-medium text-sm mt-2">Endereço para entrega:</label>
+              <Input 
+                value={address} 
+                onChange={e => setAddress(e.target.value)} 
+                placeholder="Endereço completo" 
+                required 
+                className="text-sm"
+              />
               {error && <div className="text-red-500 text-sm">{error}</div>}
-              <Button type="submit" className="mt-2" disabled={cart.length === 0}>Resgatar</Button>
+              <Button 
+                type="submit" 
+                className="w-full mt-2" 
+                disabled={cart.length === 0}
+              >
+                Resgatar
+              </Button>
             </form>
             {/* Recibo em Dialog */}
             <Dialog open={!!receipt} onOpenChange={v => { if (!v) setReceipt(null); }}>

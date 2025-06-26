@@ -14,31 +14,31 @@ import { ArrowRightIcon, UserLock } from "lucide-react"
 
 export function HeaderPublic() {
     return (
-        <header className="w-full bg-purple-800/10 shadow absolute z-50">
+        <header className="w-full bg-purple-800/10 shadow fixed top-0 z-50">
             <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                 <Link href="/" className="flex items-center space-x-2">
-                    <Image src="/logoFull.svg" alt="EmploYEAH!" width={160} height={140} />
+                    <Image src="/logoFull.svg" alt="EmploYEAH!" width={160} height={140} className="w-32 lg:w-40" />
                 </Link>
-                <nav className="hidden md:flex space-x-8 font-bold">
+                <nav className="hidden lg:flex space-x-8 font-bold">
                     <Link href="/" className="text-gray-700 hover:text-indigo-600">Home</Link>
                     <Link href="#rewards" className="text-gray-700 hover:text-indigo-600">Recompensas</Link>
                     <Link href="#services" className="text-gray-700 hover:text-indigo-600">Soluções</Link>
                     <Link href="#partners" className="text-gray-700 hover:text-indigo-600">Parceiros</Link>
                     <Link href="#contact" className="text-gray-700 hover:text-indigo-600">Contato</Link>
                 </nav>
-                <div className="flex items-center space-x-4">
-                    <Button variant="outline" className="hidden rounded-2xl md:inline-flex items-center gap-2 bg-blue-600 text-neutral-50 hover:bg-blue-700 transition-colors">
+                <div className="flex items-center space-x-2 lg:space-x-4">
+                    <Button variant="outline" className="hidden lg:inline-flex items-center gap-2 rounded-2xl bg-blue-600 text-neutral-50 hover:bg-blue-700 transition-colors">
                         <Link href="/login" className="flex items-center gap-2">
                             Área Logada <UserLock className="text-yellow-200"/>
                         </Link>
                     </Button>
-                    <Button className="hidden md:inline-flex items-center gap-2 rounded-2xl bg-yellow-200 text-yellow-950 hover:bg-yellow-300 transition-colors">
+                    <Button className="hidden lg:inline-flex items-center gap-2 rounded-2xl bg-yellow-200 text-yellow-950 hover:bg-yellow-300 transition-colors">
                         <Link href="/request" className="flex items-center gap-2">
                             Solicite um orçamento <ArrowRightIcon />
                         </Link>
                     </Button>
                     <Sheet>
-                        <SheetTrigger asChild className="md:hidden">
+                        <SheetTrigger asChild className="lg:hidden">
                             <Button variant="ghost" size="icon">
                                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -52,11 +52,11 @@ export function HeaderPublic() {
                             </SheetHeader>
                             <ScrollArea className="h-[calc(100vh-5rem)] px-4">
                                 <nav className="flex flex-col space-y-4 pt-4">
-                                    <Link href="/">Home</Link>
-                                    <Link href="#rewards">Recompensas</Link>
-                                    <Link href="#services">Soluções</Link>
-                                    <Link href="#partners">Parceiros</Link>
-                                    <Link href="#contact">Contato</Link>
+                                    <Link href="/" className="text-gray-700 hover:text-indigo-600">Home</Link>
+                                    <Link href="#rewards" className="text-gray-700 hover:text-indigo-600">Recompensas</Link>
+                                    <Link href="#services" className="text-gray-700 hover:text-indigo-600">Soluções</Link>
+                                    <Link href="#partners" className="text-gray-700 hover:text-indigo-600">Parceiros</Link>
+                                    <Link href="#contact" className="text-gray-700 hover:text-indigo-600">Contato</Link>
                                     <SheetClose asChild>
                                         <Button variant="outline" className="w-full bg-blue-600 text-neutral-50 flex items-center gap-2 hover:bg-blue-700 transition-colors">
                                             <Link href="/login" className="flex items-center gap-2 w-full h-full">

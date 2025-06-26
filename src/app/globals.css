@@ -120,3 +120,71 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Melhorias de responsividade */
+@layer utilities {
+  /* Previne overflow horizontal em mobile */
+  .prevent-overflow {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Melhora a rolagem em mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ajusta fontes para mobile */
+  .mobile-text {
+    @apply text-sm sm:text-base;
+  }
+  
+  /* Botões responsivos */
+  .responsive-button {
+    @apply px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base;
+  }
+  
+  /* Espaçamento responsivo */
+  .responsive-spacing {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  /* Grid responsivo padrão */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+  }
+  
+  /* Flexbox responsivo */
+  .responsive-flex {
+    @apply flex flex-col sm:flex-row gap-4;
+  }
+}
+
+/* Ajustes específicos para componentes UI */
+@layer components {
+  /* Melhora modais em mobile */
+  .dialog-content {
+    @apply w-full max-w-lg mx-4 sm:mx-auto;
+  }
+  
+  /* Melhora sheets em mobile */
+  .sheet-content {
+    @apply w-full sm:max-w-sm;
+  }
+  
+  /* Melhora tabelas em mobile */
+  .responsive-table {
+    @apply overflow-x-auto;
+  }
+  
+  .responsive-table table {
+    @apply min-w-full;
+  }
+}
+
+/* Fix para scroll em iOS */
+@supports (-webkit-touch-callout: none) {
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}

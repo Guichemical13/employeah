@@ -170,26 +170,38 @@ export default function UsersTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-2">
-        <div className="font-bold text-lg">Usuários</div>
-        <Button onClick={handleOpenCreate}>Novo Usuário</Button>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
+        <div className="font-bold text-lg lg:text-xl">Usuários</div>
+        <Button onClick={handleOpenCreate} className="w-full sm:w-auto">Novo Usuário</Button>
       </div>
       {loading ? (
         <div className="text-gray-400">Carregando...</div>
       ) : users.length === 0 ? (
         <div className="text-gray-400">Nenhum usuário encontrado.</div>
       ) : (
-        <ul className="space-y-2">
+        <div className="space-y-2">
           {users.map((u) => (
-            <li key={u.id} className="bg-white rounded shadow p-4 flex justify-between items-center">
-              <span>{u.name} ({u.email})</span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => handleOpenEdit(u)}>Editar</Button>
-                <Button size="sm" variant="destructive" onClick={() => handleDelete(u.id)}>Excluir</Button>
+            <div key={u.id} className="bg-white rounded shadow p-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 truncate">{u.name}</div>
+                  <div className="text-sm text-gray-500 truncate">{u.email}</div>
+                  <div className="text-xs text-gray-400">
+                    Pontos: {u.points || 0} | Função: {u.role}
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => handleOpenEdit(u)} className="flex-1 sm:flex-none">
+                    Editar
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(u.id)} className="flex-1 sm:flex-none">
+                    Excluir
+                  </Button>
+                </div>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

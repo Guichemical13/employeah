@@ -1,5 +1,4 @@
 "use client";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import CentralTab from "./central";
 import RewardsTab from "./rewards";
 import ComplimentsTab from "./compliments";
@@ -61,28 +60,18 @@ export default function Dashboard() {
   const token = typeof window !== "undefined" ? (localStorage.getItem("token") || sessionStorage.getItem("token")) : "";
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <SidebarMenu tab={tab} setTab={setTab} onLogout={handleLogout} />
-      <div className="flex-1 p-4">
-        <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="flex gap-8">
-          <div className="flex-1">
-            <TabsContent value="central">
-              <CentralTab />
-            </TabsContent>
-            <TabsContent value="rewards">
-              <RewardsTab />
-            </TabsContent>
-            <TabsContent value="elogios">
-              <ComplimentsTab />
-            </TabsContent>
-            <TabsContent value="notifications">
-              <NotificationsTab isAdminView={false} currentUser={user} />
-            </TabsContent>
-            <TabsContent value="ajustes">
-              <SettingsTab />
-            </TabsContent>
+      <div className="lg:ml-64 pt-16 lg:pt-0">
+        <div className="p-4 lg:p-6">
+          <div className="w-full">
+            {tab === "central" && <CentralTab />}
+            {tab === "rewards" && <RewardsTab />}
+            {tab === "elogios" && <ComplimentsTab />}
+            {tab === "notifications" && <NotificationsTab isAdminView={false} currentUser={user} />}
+            {tab === "ajustes" && <SettingsTab />}
           </div>
-        </Tabs>
+        </div>
       </div>
       {user && user.role !== "SUPER_ADMIN" && (
         <ForcePasswordChangeModal
