@@ -92,8 +92,8 @@ export default function NotificationsTab({ isAdminView = false, currentUser }: N
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="font-bold text-lg flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="font-bold text-lg lg:text-xl flex items-center gap-2">
           <Bell size={20} />
           Notificações
           {unreadCount > 0 && (
@@ -103,7 +103,7 @@ export default function NotificationsTab({ isAdminView = false, currentUser }: N
           )}
         </div>
         {unreadCount > 0 && (
-          <Button onClick={markAllAsRead} variant="outline" size="sm">
+          <Button onClick={markAllAsRead} variant="outline" size="sm" className="w-full sm:w-auto">
             <Check size={16} className="mr-1" />
             Marcar todas como lidas
           </Button>
@@ -124,18 +124,18 @@ export default function NotificationsTab({ isAdminView = false, currentUser }: N
                 notification.read ? "border-gray-300" : "border-blue-500"
               }`}
             >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className={`${notification.read ? "text-gray-600" : "text-gray-900 font-medium"}`}>
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className={`${notification.read ? "text-gray-600" : "text-gray-900 font-medium"} break-words`}>
                     {notification.read ? (
-                      <Bell size={16} className="inline mr-2 text-gray-400" />
+                      <Bell size={16} className="inline mr-2 text-gray-400 flex-shrink-0" />
                     ) : (
-                      <BellRing size={16} className="inline mr-2 text-blue-500" />
+                      <BellRing size={16} className="inline mr-2 text-blue-500 flex-shrink-0" />
                     )}
                     {notification.message}
                   </div>
                   {isAdminView && notification.user && notification.userId !== currentUser?.id && (
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-gray-500 mt-1 break-words">
                       Usuário: {notification.user.name} ({notification.user.email})
                     </div>
                   )}
@@ -148,7 +148,7 @@ export default function NotificationsTab({ isAdminView = false, currentUser }: N
                     onClick={() => markAsRead(notification.id)}
                     variant="ghost"
                     size="sm"
-                    className="ml-2"
+                    className="ml-2 flex-shrink-0"
                   >
                     <Check size={14} />
                   </Button>

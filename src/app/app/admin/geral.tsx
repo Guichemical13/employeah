@@ -38,33 +38,56 @@ export default function GeralTab({ user }: { user: any }) {
     }, [user]);
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {user?.role === "SUPER_ADMIN" && (
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Geral</h1>
+                <p className="text-gray-600">Visão geral do sistema EmploYEAH!</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {user?.role === "SUPER_ADMIN" && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Empresas</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <span className="text-3xl font-bold text-blue-600">{stats.companies}</span>
+                        </CardContent>
+                    </Card>
+                )}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Empresas</CardTitle>
+                        <CardTitle>Usuários</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <span className="text-3xl font-bold">{stats.companies}</span>
+                        <span className="text-3xl font-bold text-green-600">{stats.users}</span>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Itens</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <span className="text-3xl font-bold text-purple-600">{stats.items}</span>
+                    </CardContent>
+                </Card>
+            </div>
+            
+            {user && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Informações do Usuário</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <p><strong>Nome:</strong> {user.name}</p>
+                        <p><strong>Email:</strong> {user.email}</p>
+                        <p><strong>Função:</strong> {user.role}</p>
+                        {user.role !== "SUPER_ADMIN" && (
+                            <p><strong>Pontos:</strong> {user.points || 0}</p>
+                        )}
                     </CardContent>
                 </Card>
             )}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Usuários</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <span className="text-3xl font-bold">{stats.users}</span>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Itens</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <span className="text-3xl font-bold">{stats.items}</span>
-                </CardContent>
-            </Card>
         </div>
     );
 }

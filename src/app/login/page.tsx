@@ -135,23 +135,23 @@ export default function Login() {
 
     return (
         <div className="flex min-h-screen w-screen items-stretch bg-gray-100">
-            <div className="hidden md:flex md:w-1/2 bg-gradient-to-b from-purple-50 to-purple-white p-10 text-purple-800 items-center justify-center">
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-b from-purple-50 to-purple-white p-6 lg:p-10 text-purple-800 items-center justify-center">
                 <div className="flex flex-col items-center">
                     <div className="p-4 mb-4">
-                        <Image src="/assets/login/balloon.svg" alt="Logo" width={500} height={500} />
+                        <Image src="/assets/login/balloon.svg" alt="Logo" width={400} height={400} className="w-64 lg:w-96" />
                     </div>
-                    <p className="text-center text-purple-800/80 text-md font-bold mb-8 max-w-xs">
+                    <p className="text-center text-purple-800/80 text-sm lg:text-md font-bold mb-8 max-w-xs lg:max-w-md">
                         A plataforma gamificada que transforma o engajamento dos colaboradores em resultados reais para sua empresa. 
                         Conecte-se, participe e conquiste recompensas exclusivas!
                     </p>
                 </div>
             </div>
-            <div className="w-full md:w-1/2 bg-white flex flex-col justify-center p-10">
+            <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center p-6 lg:p-10">
                 <div className="flex justify-center mb-6">
-                    <Image src="/logoFull.svg" alt="Logo EmploYEAH!" width={248} height={248} />
+                    <Image src="/logoFull.svg" alt="Logo EmploYEAH!" width={248} height={248} className="w-48 lg:w-64" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Logue em sua conta EmploYEAH!</h1>
-                {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6 text-center">Logue em sua conta EmploYEAH!</h1>
+                {error && <div className="mb-4 text-red-600 text-center text-sm lg:text-base">{error}</div>}
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -205,7 +205,7 @@ export default function Login() {
                             )}
                         />
 
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4">
                             <Button type="submit" className="flex-1 bg-purple-600 hover:bg-purple-800 text-white">
                                 Entrar
                             </Button>

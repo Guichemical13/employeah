@@ -1,5 +1,4 @@
 "use client";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CompaniesTab from "./companies";
 import UsersTab from "./users";
 import ItemsTab from "./items";
@@ -70,36 +69,20 @@ export default function AdminPanel() {
     const token = typeof window !== "undefined" ? (localStorage.getItem("token") || sessionStorage.getItem("token")) : "";
 
     return (
-        <div className="min-h-screen flex bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
             <SidebarMenu tab={tab} setTab={setTab} onLogout={handleLogout} showAdminTabs userRole={user?.role} />
-            <div className="flex-1 p-4">
-                <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="flex gap-8">
-                    <div className="flex-1">
-                        <TabsContent value="geral">
-                            <GeralTab user={user} />
-                        </TabsContent>
-                        {user?.role === "SUPER_ADMIN" && (
-                            <TabsContent value="empresas">
-                                <CompaniesTab />
-                            </TabsContent>
-                        )}
-                        <TabsContent value="usuarios">
-                            <UsersTab />
-                        </TabsContent>
-                        <TabsContent value="itens">
-                            <ItemsTab />
-                        </TabsContent>
-                        <TabsContent value="ajustes">
-                            <SettingsTab />
-                        </TabsContent>
-                        <TabsContent value="categorias">
-                            <CategoriesTab />
-                        </TabsContent>
-                        <TabsContent value="notifications">
-                            <NotificationsTab isAdminView={true} currentUser={user} />
-                        </TabsContent>
+            <div className="lg:ml-64 pt-16 lg:pt-0">
+                <div className="p-4 lg:p-6">
+                    <div className="w-full">
+                        {tab === "geral" && <GeralTab user={user} />}
+                        {tab === "empresas" && user?.role === "SUPER_ADMIN" && <CompaniesTab />}
+                        {tab === "usuarios" && <UsersTab />}
+                        {tab === "itens" && <ItemsTab />}
+                        {tab === "ajustes" && <SettingsTab />}
+                        {tab === "categorias" && <CategoriesTab />}
+                        {tab === "notifications" && <NotificationsTab isAdminView={true} currentUser={user} />}
                     </div>
-                </Tabs>
+                </div>
             </div>
             {user && user.role !== "SUPER_ADMIN" && (
                 <ForcePasswordChangeModal
