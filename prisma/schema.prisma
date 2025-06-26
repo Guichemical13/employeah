@@ -1,0 +1,96 @@
+// schema.prisma
+// Banco de dados para EmploYEAH
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  COLLABORATOR
+}
+
+model Company {
+  id         Int       @id @default(autoincrement())
+  name       String
+  users      User[]
+  items      Item[]
+  categories Category[]
+  transactions PointTransaction[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model User {
+  id                 Int               @id @default(autoincrement())
+  name               String
+  email              String            @unique
+  password           String
+  mustChangePassword Boolean @default(false)
+  role               UserRole
+  company            Company?          @relation(fields: [companyId], references: [id])
+  companyId          Int?
+  points             Int               @default(0)
+  transactions       PointTransaction[]
+  elogios            Elogio[]          @relation("ElogiosRecebidos")
+  elogiosDados       Elogio[]          @relation("ElogiosEnviados")
+  notifications      Notification[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+}
+
+model Category {
+  id        Int     @id @default(autoincrement())
+  name      String
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId Int
+  items     Item[]
+}
+
+model Item {
+  id         Int       @id @default(autoincrement())
+  name       String
+  price      Int
+  stock      Int
+  company    Company   @relation(fields: [companyId], references: [id])
+  companyId  Int
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+}
+
+model PointTransaction {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  company    Company  @relation(fields: [companyId], references: [id])
+  companyId  Int
+  amount     Int
+  type       String   // 'award' | 'spend'
+  createdAt  DateTime @default(now())
+}
+
+model Elogio {
+  id           Int      @id @default(autoincrement())
+  message      String
+  from         User     @relation("ElogiosEnviados", fields: [fromId], references: [id])
+  fromId       Int
+  to           User     @relation("ElogiosRecebidos", fields: [toId], references: [id])
+  toId         Int
+  likes        Int      @default(0)
+  createdAt    DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
