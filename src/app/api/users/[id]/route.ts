@@ -10,9 +10,10 @@ import bcrypt from 'bcryptjs';
  * @access Private
  * @note SUPER_ADMIN pode alterar senhas de qualquer usuário
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyToken(req);
   if (!user) return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+  const { id } = await params;
   const body = await req.json();
   const schema = z.object({
     name: z.string().min(2).optional(),
@@ -26,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
   }
   const data: any = { ...parsed.data };
-  const isSelf = (user as any).id === Number(params.id);
+  const isSelf = (user as any).id === Number(id);
   const isAdmin = (user as any).role === 'COMPANY_ADMIN' || (user as any).role === 'SUPER_ADMIN';
 
   // Só admins podem editar pontos
@@ -59,7 +60,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }
     }
   }
-  const updated = await prisma.user.update({ where: { id: Number(params.id) }, data });
+  const updated = await prisma.user.update({ where: { id: Number(id) }, data });
   return NextResponse.json(updated);
 }
 
@@ -68,11 +69,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
  * @desc Remove usuário (COMPANY_ADMIN ou SUPER_ADMIN)
  * @access Private
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyToken(req);
   if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes((user as any).role)) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
-  await prisma.user.delete({ where: { id: Number(params.id) } });
+  const { id } = await params;
+  await prisma.user.delete({ where: { id: Number(id) } });
   return NextResponse.json({ success: true });
 }
