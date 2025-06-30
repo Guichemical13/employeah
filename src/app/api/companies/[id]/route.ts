@@ -8,18 +8,19 @@ import { z } from 'zod';
  * @desc Edita empresa (SUPER_ADMIN)
  * @access Private
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyToken(req);
   if (!user || (user as any).role !== 'SUPER_ADMIN') {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
+  const { id } = await params;
   const body = await req.json();
   const schema = z.object({ name: z.string().min(2) });
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Nome inválido' }, { status: 400 });
   }
-  const company = await prisma.company.update({ where: { id: Number(params.id) }, data: { name: parsed.data.name } });
+  const company = await prisma.company.update({ where: { id: Number(id) }, data: { name: parsed.data.name } });
   return NextResponse.json(company);
 }
 
@@ -28,12 +29,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
  * @desc Remove empresa (SUPER_ADMIN)
  * @access Private
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyToken(req);
   if (!user || (user as any).role !== 'SUPER_ADMIN') {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
-  const companyId = Number(params.id);
+  const { id } = await params;
+  const companyId = Number(id);
   // Remove elogios relacionados aos usuários da empresa
   await prisma.elogio.deleteMany({
     where: {

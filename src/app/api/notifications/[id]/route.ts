@@ -7,11 +7,12 @@ import { verifyToken } from '@/lib/auth';
  * @desc Marca uma notificação específica como lida
  * @access Private
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyToken(req);
   if (!user) return NextResponse.json({ error: 'Acesso negado' }, { status: 401 });
 
-  const notificationId = parseInt(params.id);
+  const { id } = await params;
+  const notificationId = parseInt(id);
   
   // Busca a notificação com informações do usuário
   const notification = await prisma.notification.findUnique({
