@@ -38,6 +38,8 @@ export interface PointTransaction {
   companyId: number;
   amount: number;
   type: string;
+  description?: string;
+  adminName?: string;
   createdAt: string;
 }
 

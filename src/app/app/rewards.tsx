@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { ShoppingCart, Package } from "lucide-react";
 import type { Item, Category } from "@/types/models";
 import RewardsCart from "./cart";
 
@@ -55,6 +56,19 @@ export default function RewardsTab() {
     fetchData();
   }
 
+  function handleAddToCart(item: Item) {
+    // Adiciona ao carrinho
+    cartRef.current?.addToCart(item);
+  }
+
+  function handleBuyDirect(item: Item) {
+    // Adiciona ao carrinho
+    cartRef.current?.addToCart(item);
+    
+    // Abre o carrinho automaticamente
+    cartRef.current?.openCart();
+  }
+
   return (
     <div className="space-y-6">
       <RewardsCart ref={cartRef} />
@@ -73,17 +87,42 @@ export default function RewardsTab() {
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-6 text-center text-gray-400 col-span-full">Nenhuma recompensa encontrada.</div>
         ) : filtered.map((item) => (
-          <div key={item.id} className="bg-white rounded-lg shadow p-4 lg:p-6 flex flex-col items-center">
+          <div key={item.id} className="bg-white rounded-lg shadow p-4 lg:p-6 flex flex-col items-center hover:shadow-lg transition-shadow">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-3">
+              <Package className="h-8 w-8 text-purple-600" />
+            </div>
             <div className="font-bold mb-2 text-center text-sm lg:text-base">{item.name}</div>
-            <div className="mb-2 text-sm lg:text-base">Preço: <span className="font-bold text-purple-700">{item.price}</span></div>
-            <div className="mb-4 text-sm lg:text-base">Estoque: {item.stock}</div>
-            <Button 
-              onClick={() => cartRef.current?.addToCart(item)}
-              className="w-full text-xs lg:text-sm"
-              disabled={item.stock === 0}
-            >
-              {item.stock === 0 ? 'Sem estoque' : 'Adicionar ao carrinho'}
-            </Button>
+            <div className="mb-2 text-sm lg:text-base">
+              <span className="text-purple-700 font-bold text-lg">{item.price}</span> pontos
+            </div>
+            <div className="mb-4 text-sm text-gray-500">Estoque: {item.stock}</div>
+            <div className="flex gap-2 w-full">
+              <Button 
+                onClick={() => handleAddToCart(item)}
+                className="flex-1 text-xs lg:text-sm flex items-center gap-1 bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+                disabled={item.stock === 0}
+              >
+                {item.stock === 0 ? (
+                  'Sem estoque'
+                ) : (
+                  <>
+                    <ShoppingCart className="h-3 w-3" />
+                    Carrinho
+                  </>
+                )}
+              </Button>
+              <Button 
+                onClick={() => handleBuyDirect(item)}
+                className="flex-1 text-xs lg:text-sm bg-green-600 hover:bg-green-700 transition-colors duration-200"
+                disabled={item.stock === 0}
+              >
+                {item.stock === 0 ? (
+                  'Sem estoque'
+                ) : (
+                  'Comprar'
+                )}
+              </Button>
+            </div>
           </div>
         ))}
       </div>

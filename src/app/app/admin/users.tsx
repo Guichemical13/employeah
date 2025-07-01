@@ -22,6 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import PasswordValidator from "@/components/PasswordValidator";
 import type { Company, User } from "@/types/models";
 
 const userSchema = z.object({
@@ -32,7 +33,6 @@ const userSchema = z.object({
     .regex(/[A-Z]/, "Deve conter uma letra maiúscula")
     .regex(/[a-z]/, "Deve conter uma letra minúscula")
     .regex(/[0-9]/, "Deve conter um número")
-    .regex(/[!@#$%^&*()_+\-=[\]{};':\"\\|,.<>/?]/, "Deve conter um caractere especial")
     .optional()
     .or(z.literal("")),
   companyId: z.string().optional(), // será validado manualmente para SUPER_ADMIN
@@ -62,11 +62,11 @@ export default function UsersTab() {
 
   async function fetchUsers() {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    console.log("[admin users] token:", token);
     const res = await fetch("/api/users", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    setUsers(await res.json());
+    const data = await res.json();
+    setUsers(data.users || []);
     setLoading(false);
   }
 
@@ -251,6 +251,10 @@ export default function UsersTab() {
                       <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
+                    <PasswordValidator 
+                      password={field.value || ""} 
+                      className="mt-2"
+                    />
                   </FormItem>
                 )}
               />

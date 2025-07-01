@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
         companyId: (user as any).companyId,
         amount: -total,
         type: 'spend',
+        description: `Resgate de itens: ${itemNames}`,
       },
     });
 

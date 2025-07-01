@@ -10,9 +10,21 @@ import { verifyToken } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const user = await verifyToken(req);
   if (!user || typeof user !== 'object' || !('id' in user)) return NextResponse.json([], { status: 401 });
+  
   const transactions = await prisma.pointTransaction.findMany({
     where: { userId: (user as any).id },
     orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      userId: true,
+      companyId: true,
+      amount: true,
+      type: true,
+      description: true,
+      adminName: true,
+      createdAt: true,
+    }
   });
+  
   return NextResponse.json(transactions);
 }
