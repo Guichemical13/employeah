@@ -2,6 +2,8 @@
 import CompaniesTab from "./companies";
 import UsersTab from "./users";
 import ItemsTab from "./items";
+import PointsTab from "./points";
+import ElogiosTab from "./elogios";
 import SidebarMenu from "@/components/SidebarMenu";
 import SettingsTab from "../settings";
 import NotificationsTab from "../notifications";
@@ -80,6 +82,8 @@ export default function AdminPanel() {
                         {tab === "itens" && <ItemsTab />}
                         {tab === "ajustes" && <SettingsTab />}
                         {tab === "categorias" && <CategoriesTab />}
+                        {tab === "pontos" && <PointsTab />}
+                        {tab === "elogios-admin" && <ElogiosTab />}
                         {tab === "notifications" && <NotificationsTab isAdminView={true} currentUser={user} />}
                     </div>
                 </div>

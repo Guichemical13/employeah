@@ -22,13 +22,18 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import PasswordValidator from "@/components/PasswordValidator";
 import type { Company } from "@/types/models";
 
 const companySchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
   adminName: z.string().min(2, "Nome do admin obrigatório"),
   adminEmail: z.string().email("E-mail do admin inválido"),
-  adminPassword: z.string().min(6, "Senha do admin mínima de 6 caracteres"),
+  adminPassword: z.string()
+    .min(8, "Senha mínima de 8 caracteres")
+    .regex(/[A-Z]/, "Deve conter uma letra maiúscula")
+    .regex(/[a-z]/, "Deve conter uma letra minúscula")
+    .regex(/[0-9]/, "Deve conter um número"),
 });
 type CompanyForm = z.infer<typeof companySchema>;
 
@@ -211,6 +216,10 @@ export default function CompaniesTab() {
                           <Input type="password" {...field} />
                         </FormControl>
                         <FormMessage />
+                        <PasswordValidator 
+                          password={field.value || ""} 
+                          className="mt-2"
+                        />
                       </FormItem>
                     )}
                   />

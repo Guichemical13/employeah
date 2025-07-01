@@ -12,15 +12,56 @@ import bcrypt from 'bcryptjs';
 export async function GET(req: NextRequest) {
   const user = await verifyToken(req);
   if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN', 'COLLABORATOR'].includes((user as any).role)) {
-    return NextResponse.json([], { status: 403 });
+    return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
-  let users;
-  if ((user as any).role === 'SUPER_ADMIN') {
-    users = await prisma.user.findMany();
-  } else {
-    users = await prisma.user.findMany({ where: { companyId: (user as any).companyId } });
+
+  try {
+    let users;
+    if ((user as any).role === 'SUPER_ADMIN') {
+      users = await prisma.user.findMany({
+        include: {
+          company: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
+        orderBy: { name: 'asc' }
+      });
+    } else {
+      users = await prisma.user.findMany({ 
+        where: { companyId: (user as any).companyId },
+        include: {
+          company: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
+        orderBy: { name: 'asc' }
+      });
+    }
+
+    // Remover senhas dos dados retornados
+    const safeUsers = users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      points: u.points,
+      companyId: u.companyId,
+      company: u.company,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt
+    }));
+
+    return NextResponse.json({ users: safeUsers });
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
-  return NextResponse.json(users);
 }
 
 /**

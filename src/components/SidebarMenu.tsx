@@ -12,6 +12,8 @@ import {
   Bell,
   Menu,
   X,
+  Coins,
+  Heart,
 } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useState } from "react";
@@ -26,7 +28,9 @@ export type SidebarTab =
   | "categorias"
   | "usuarios"
   | "itens"
-  | "geral";
+  | "geral"
+  | "pontos"
+  | "elogios-admin";
 
 interface SidebarMenuProps {
   tab: string;
@@ -114,6 +118,26 @@ export default function SidebarMenu({
                 }`}
               >
                 <LayoutDashboard size={18} /> Categorias
+              </button>
+              <button
+                onClick={() => handleTabChange("pontos")}
+                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
+                  tab === "pontos" 
+                    ? "bg-white text-[#5a5ad6] shadow-sm" 
+                    : "text-gray-700 hover:bg-white/50"
+                }`}
+              >
+                <Coins size={18} /> Gestão de Pontos
+              </button>
+              <button
+                onClick={() => handleTabChange("elogios-admin")}
+                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
+                  tab === "elogios-admin" 
+                    ? "bg-white text-[#5a5ad6] shadow-sm" 
+                    : "text-gray-700 hover:bg-white/50"
+                }`}
+              >
+                <Heart size={18} /> Mural de Elogios
               </button>
               <button
                 onClick={() => handleTabChange("notifications")}

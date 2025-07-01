@@ -23,12 +23,11 @@ interface CartItem extends Item {
 const RewardsCart = forwardRef(function RewardsCart(props, ref) {
   const [items, setItems] = useState<Item[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [address, setAddress] = useState("");
-  const [cep, setCep] = useState("");
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false); // controls Sheet
   const [receipt, setReceipt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cartAnimation, setCartAnimation] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -51,6 +50,10 @@ const RewardsCart = forwardRef(function RewardsCart(props, ref) {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
+
+    // Trigger animation
+    setCartAnimation(true);
+    setTimeout(() => setCartAnimation(false), 600);
   }
 
   function removeFromCart(itemId: number) {
@@ -61,39 +64,25 @@ const RewardsCart = forwardRef(function RewardsCart(props, ref) {
     setCart(prev => prev.map(ci => ci.id === itemId ? { ...ci, quantity: Math.max(1, quantity) } : ci));
   }
 
-  async function handleCepLookup() {
-    if (!cep) return;
-    setError(null);
-    try {
-      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const data = await res.json();
-      if (data.erro) {
-        setError("CEP não encontrado");
-        return;
-      }
-      setAddress(`${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`);
-    } catch {
-      setError("Erro ao buscar CEP");
-    }
+  function openCart() {
+    setOpen(true);
   }
 
   async function handleRedeem() {
     setError(null);
-    if (!address || cart.length === 0) {
-      setError("Preencha o endereço e adicione itens ao carrinho.");
+    if (cart.length === 0) {
+      setError("Adicione itens ao carrinho.");
       return;
     }
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     const res = await fetch("/api/points/spend", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ items: cart.map(ci => ({ id: ci.id, quantity: ci.quantity })), address })
+      body: JSON.stringify({ items: cart.map(ci => ({ id: ci.id, quantity: ci.quantity })) })
     });
     if (res.ok) {
-      setReceipt("Resgate realizado com sucesso! Você receberá uma notificação quando o admin aprovar.");
+      setReceipt("Resgate realizado com sucesso! Você acabou de resgatar " + cart.map(ci => `${ci.name} (${ci.quantity})`).join(", ") + ".");
       setCart([]);
-      setAddress("");
-      setCep("");
     } else {
       const err = await res.json();
       setError(err.message || "Erro ao resgatar itens.");
@@ -110,6 +99,7 @@ const RewardsCart = forwardRef(function RewardsCart(props, ref) {
 
   useImperativeHandle(ref, () => ({
     addToCart,
+    openCart,
   }));
 
   return (
@@ -118,7 +108,12 @@ const RewardsCart = forwardRef(function RewardsCart(props, ref) {
       <div className="fixed bottom-4 right-4 z-50">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="lg" className="rounded-full shadow-lg px-4 lg:px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-sm lg:text-base">
+            <Button 
+              size="lg" 
+              className={`rounded-full shadow-lg px-4 lg:px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-sm lg:text-base transition-all duration-300 ${
+                cartAnimation ? 'scale-110 bg-green-500 hover:bg-green-600' : ''
+              }`}
+            >
               <span className="hidden sm:inline">Carrinho </span>
               ({cart.reduce((sum, ci) => sum + ci.quantity, 0)})
             </Button>
@@ -163,41 +158,17 @@ const RewardsCart = forwardRef(function RewardsCart(props, ref) {
                 </div>
               </div>
             )}
-            <form className="space-y-3 mt-4 p-2" onSubmit={e => { e.preventDefault(); handleRedeem(); }}>
-              <label className="block font-medium text-sm">CEP:</label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input 
-                  value={cep} 
-                  onChange={e => setCep(e.target.value)} 
-                  placeholder="Digite o CEP" 
-                  className="flex-1 text-sm"
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleCepLookup}
-                  className="w-full sm:w-auto text-sm"
-                >
-                  Buscar
-                </Button>
-              </div>
-              <label className="block font-medium text-sm mt-2">Endereço para entrega:</label>
-              <Input 
-                value={address} 
-                onChange={e => setAddress(e.target.value)} 
-                placeholder="Endereço completo" 
-                required 
-                className="text-sm"
-              />
-              {error && <div className="text-red-500 text-sm">{error}</div>}
+            <div className="mt-4 p-2">
+              {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
               <Button 
-                type="submit" 
+                onClick={handleRedeem}
                 className="w-full mt-2" 
                 disabled={cart.length === 0}
               >
                 Resgatar
               </Button>
-            </form>
+            </div>
+
             {/* Recibo em Dialog */}
             <Dialog open={!!receipt} onOpenChange={v => { if (!v) setReceipt(null); }}>
               <DialogContent>

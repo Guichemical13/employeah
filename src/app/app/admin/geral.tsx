@@ -18,20 +18,20 @@ export default function GeralTab({ user }: { user: any }) {
             if (user?.role === "SUPER_ADMIN") {
                 [companies, users, items] = await Promise.all([
                     fetch("/api/companies", { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : [])),
-                    fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : [])),
+                    fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : { users: [] })),
                     fetch("/api/items", { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : [])),
                 ]);
-            } else if (user?.role === "COMPANY_ADMIN") {
+            } else if (user?.role === "COMPANY_ADMIN" || user?.role === "ADMIN") {
                 // Busca usuários e itens da empresa do admin
                 [users, items] = await Promise.all([
-                    fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : [])),
+                    fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : { users: [] })),
                     fetch("/api/items", { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : [])),
                 ]);
             }
             setStats({
-                companies: companies.length,
-                users: users.length,
-                items: items.length,
+                companies: Array.isArray(companies) ? companies.length : 0,
+                users: Array.isArray(users) ? users.length : (users.users ? users.users.length : 0),
+                items: Array.isArray(items) ? items.length : 0,
             });
         }
         fetchStats();
@@ -57,7 +57,7 @@ export default function GeralTab({ user }: { user: any }) {
                 )}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Usuários</CardTitle>
+                        <CardTitle>Usuários/Funcionários</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <span className="text-3xl font-bold text-green-600">{stats.users}</span>
