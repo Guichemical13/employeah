@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EmploYEAH! - Plataforma de Engajamento",
+  title: "EmploYEAH! - Plataforma de Engajamento!",
   description: "Plataforma gamificada que transforma o engajamento dos colaboradores em resultados reais para sua empresa",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
