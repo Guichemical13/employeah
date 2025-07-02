@@ -36,24 +36,61 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
   const { id } = await params;
   const companyId = Number(id);
-  // Remove elogios relacionados aos usuários da empresa
-  await prisma.elogio.deleteMany({
-    where: {
-      OR: [
-        { to: { companyId: companyId } },
-        { from: { companyId: companyId } },
-      ],
-    },
-  });
-  // Remove transações de pontos da empresa
-  await prisma.pointTransaction.deleteMany({ where: { companyId } });
-  // Remove itens da empresa
-  await prisma.item.deleteMany({ where: { companyId } });
-  // Remove categorias da empresa
-  await prisma.category.deleteMany({ where: { companyId } });
-  // Remove usuários da empresa
-  await prisma.user.deleteMany({ where: { companyId } });
-  // Por fim, remove a empresa
-  await prisma.company.delete({ where: { id: companyId } });
-  return NextResponse.json({ success: true });
+
+  try {
+    await prisma.$transaction(async (prisma) => {
+      // 1. Primeiro, buscar todos os usuários da empresa
+      const users = await prisma.user.findMany({
+        where: { companyId },
+        select: { id: true }
+      });
+      
+      const userIds = users.map(user => user.id);
+
+      if (userIds.length > 0) {
+        // 2. Deletar notificações dos usuários
+        await prisma.notification.deleteMany({
+          where: { userId: { in: userIds } }
+        });
+
+        // 3. Deletar transações de pontos dos usuários
+        await prisma.pointTransaction.deleteMany({
+          where: { userId: { in: userIds } }
+        });
+
+        // 4. Deletar elogios (tanto enviados quanto recebidos)
+        await prisma.elogio.deleteMany({
+          where: {
+            OR: [
+              { fromId: { in: userIds } },
+              { toId: { in: userIds } }
+            ]
+          }
+        });
+      }
+
+      // 5. Deletar itens da empresa
+      await prisma.item.deleteMany({ where: { companyId } });
+
+      // 6. Deletar categorias da empresa
+      await prisma.category.deleteMany({ where: { companyId } });
+
+      // 7. Deletar usuários da empresa
+      await prisma.user.deleteMany({ where: { companyId } });
+
+      // 8. Por fim, deletar a empresa
+      await prisma.company.delete({ where: { id: companyId } });
+    });
+
+    return NextResponse.json({ success: true, message: 'Empresa deletada com sucesso' });
+  } catch (error) {
+    console.error('Erro ao deletar empresa:', error);
+    return NextResponse.json(
+      { 
+        error: 'Erro interno do servidor', 
+        details: error instanceof Error ? error.message : 'Erro desconhecido' 
+      },
+      { status: 500 }
+    );
+  }
 }
