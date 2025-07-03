@@ -274,7 +274,7 @@ export default function ElogiosAdmin({ isAdmin = false, onElogioDeleted }: Elogi
               Confirmar Exclusão
             </DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir este elogio? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este elogio? Esta ação não vai poder ser desfeita.
             </DialogDescription>
           </DialogHeader>
 
