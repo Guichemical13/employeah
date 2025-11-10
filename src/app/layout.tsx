@@ -27,6 +27,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <script src="https://t.contentsquare.net/uxa/edc1fa6f45ad9.js"></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased prevent-overflow`}
