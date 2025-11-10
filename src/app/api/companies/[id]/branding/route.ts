@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
 
-// GET - Buscar configurações de branding da empresa
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const payload: any = await verifyToken(req);
@@ -13,7 +12,8 @@ export async function GET(
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const companyId = parseInt(params.id);
+    const { id } = await params;
+    const companyId = parseInt(id);
     
     // Verificar se o usuário tem acesso a esta empresa
     if (payload.role !== "SUPER_ADMIN" && payload.companyId !== companyId) {
@@ -57,10 +57,9 @@ export async function GET(
   }
 }
 
-// PUT - Atualizar configurações de branding (apenas COMPANY_ADMIN ou SUPER_ADMIN)
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const payload: any = await verifyToken(req);
@@ -68,7 +67,8 @@ export async function PUT(
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const companyId = parseInt(params.id);
+    const { id } = await params;
+    const companyId = parseInt(id);
 
     // Verificar permissões
     if (
