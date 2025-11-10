@@ -8,6 +8,20 @@ const nextConfig: NextConfig = {
         hostname: 'randomuser.me',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**', // Permite qualquer hostname HTTPS para logos customizados
+      },
     ],
   },
 };

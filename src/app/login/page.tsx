@@ -134,99 +134,160 @@ export default function Login() {
     }
 
     return (
-        <div className="flex min-h-screen w-screen items-stretch bg-gray-100">
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-b from-purple-50 to-purple-white p-6 lg:p-10 text-purple-800 items-center justify-center">
-                <div className="flex flex-col items-center">
-                    <div className="p-4 mb-4">
-                        <Image src="/assets/login/balloon.svg" alt="Logo" width={400} height={400} className="w-64 lg:w-96" />
+        <div className="flex min-h-screen w-screen items-stretch bg-gradient-to-br from-gray-50 via-white to-gray-100">
+            {/* Left Side - Decorative */}
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#026876]/5 via-[#03BBAF]/5 to-[#03A0A]/5 p-8 lg:p-12 items-center justify-center relative overflow-hidden">
+                {/* Decorative circles */}
+                <div className="absolute top-20 left-20 w-64 h-64 bg-[#03BBAF]/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-20 right-20 w-80 h-80 bg-[#026876]/10 rounded-full blur-3xl"></div>
+                
+                <div className="relative z-10 flex flex-col items-center max-w-lg">
+                    {/* Logo Grande */}
+                    <div className="mb-12 animate-in fade-in zoom-in duration-700">
+                        <Image 
+                            src="/logo.svg" 
+                            alt="Logo EmploYEAH!" 
+                            width={300} 
+                            height={300} 
+                            className="w-56 h-56 lg:w-80 lg:h-80 drop-shadow-2xl" 
+                        />
                     </div>
-                    <p className="text-center text-purple-800/80 text-sm lg:text-md font-bold mb-8 max-w-xs lg:max-w-md">
-                        A plataforma gamificada que transforma o engajamento dos colaboradores em resultados reais para sua empresa. 
-                        Conecte-se, participe e conquiste recompensas exclusivas!
-                    </p>
+                    
+                    <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                        <h2 className="text-2xl lg:text-3xl font-bold text-[#026876]">
+                            Bem-vindo de volta! 👋
+                        </h2>
+                        <p className="text-gray-600 text-sm lg:text-base leading-relaxed max-w-md">
+                            A plataforma gamificada que transforma o engajamento dos colaboradores em resultados reais. 
+                            Conecte-se, participe e conquiste recompensas exclusivas!
+                        </p>
+                    </div>
                 </div>
             </div>
-            <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center p-6 lg:p-10">
-                <div className="flex justify-center mb-6">
-                    <Image src="/logoFull.svg" alt="Logo EmploYEAH!" width={248} height={248} className="w-48 lg:w-64" />
+
+            {/* Right Side - Login Form */}
+            <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center p-6 lg:p-12 relative">
+                {/* Form Container */}
+                <div className="max-w-md mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {/* Title Section */}
+                    <div className="text-center mb-8">
+                        <h1 className="text-2xl lg:text-3xl font-bold text-[#026876] mb-2">
+                            Acesse sua conta
+                        </h1>
+                        <p className="text-gray-500 text-sm lg:text-base">
+                            Entre com suas credenciais para continuar
+                        </p>
+                    </div>
+
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
+                            <p className="text-red-700 text-sm lg:text-base font-medium">{error}</p>
+                        </div>
+                    )}
+
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-semibold text-gray-700">
+                                            E-mail
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input 
+                                                placeholder="seu@email.com.br" 
+                                                {...field} 
+                                                className="h-12 border-gray-300 focus:border-[#03BBAF] focus:ring-[#03BBAF] text-base"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-semibold text-gray-700">
+                                            Senha
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input 
+                                                type="password" 
+                                                placeholder="Digite sua senha" 
+                                                {...field} 
+                                                className="h-12 border-gray-300 focus:border-[#03BBAF] focus:ring-[#03BBAF] text-base"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="rememberMe"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                name={field.name}
+                                                ref={field.ref}
+                                                className="data-[state=checked]:bg-[#03BBAF] data-[state=checked]:border-[#03BBAF]"
+                                            />
+                                        </FormControl>
+                                        <FormLabel className="text-sm text-gray-600 cursor-pointer font-normal">
+                                            Lembrar de mim
+                                        </FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="space-y-3 pt-2">
+                                <Button 
+                                    type="submit" 
+                                    className="w-full h-12 bg-gradient-to-r from-[#026876] to-[#03BBAF] hover:from-[#026876]/90 hover:to-[#03BBAF]/90 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300"
+                                >
+                                    Entrar
+                                </Button>
+                                
+                                <Button 
+                                    type="button" 
+                                    variant="outline"
+                                    className="w-full h-12 border-2 border-gray-300 hover:border-[#026876] hover:bg-[#026876]/5 text-gray-700 font-semibold text-base transition-all duration-300"
+                                    onClick={() => router.push("/")}
+                                >
+                                    Voltar ao Início
+                                </Button>
+                            </div>
+
+                            <div className="text-center pt-4">
+                                <p className="text-sm text-gray-500">
+                                    Não tem uma conta?{" "}
+                                    <a href="/request" className="text-[#03BBAF] hover:text-[#026876] font-semibold hover:underline transition-colors">
+                                        Solicite um orçamento
+                                    </a>
+                                </p>
+                            </div>
+                        </form>
+                    </Form>
+                    
+                    {mustChangePassword && userId && (
+                        <ForcePasswordChangeModal
+                            open={mustChangePassword}
+                            onPasswordChanged={handlePasswordChanged}
+                            userId={userId}
+                            token={token}
+                        />
+                    )}
                 </div>
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6 text-center">Logue em sua conta EmploYEAH!</h1>
-                {error && <div className="mb-4 text-red-600 text-center text-sm lg:text-base">{error}</div>}
-
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>E-mail</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="email@exemplo.com.br" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Senha</FormLabel>
-                                    <FormControl>
-                                        <Input type="password" placeholder="***************" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="rememberMe"
-                            render={({ field }) => (
-                                <FormItem className="flex items-start space-x-2">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            name={field.name}
-                                            ref={field.ref}
-                                        />
-                                    </FormControl>
-                                    <FormLabel className="text-xs text-gray-500">
-                                        Lembrar de mim
-                                    </FormLabel>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Button type="submit" className="flex-1 bg-purple-600 hover:bg-purple-800 text-white">
-                                Entrar
-                            </Button>
-                        </div>
-                        <div>
-                            <Button type="button" className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800">
-                                <Link href="/" className="flex items-center justify-center w-full h-full">
-                                    Voltar
-                                </Link>
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
-                {mustChangePassword && userId && (
-                    <ForcePasswordChangeModal
-                        open={mustChangePassword}
-                        onPasswordChanged={handlePasswordChanged}
-                        userId={userId}
-                        token={token}
-                    />
-                )}
             </div>
         </div>
     );

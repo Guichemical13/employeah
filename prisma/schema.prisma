@@ -8,14 +8,16 @@ datasource db {
 }
 
 model Company {
-  id           Int                @id @default(autoincrement())
-  name         String
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  categories   Category[]
-  items        Item[]
-  transactions PointTransaction[]
-  users        User[]
+  id              Int                @id @default(autoincrement())
+  name            String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  categories      Category[]
+  items           Item[]
+  transactions    PointTransaction[]
+  users           User[]
+  branding        CompanyBranding?
+  surveyResponses SurveyResponse[]
 }
 
 model User {
@@ -33,6 +35,7 @@ model User {
   elogios            Elogio[]           @relation("ElogiosRecebidos")
   notifications      Notification[]
   transactions       PointTransaction[]
+  surveyResponses    SurveyResponse[]
   company            Company?           @relation(fields: [companyId], references: [id])
 
   @@index([companyId], map: "User_companyId_fkey")
@@ -107,4 +110,60 @@ enum UserRole {
   SUPER_ADMIN
   COMPANY_ADMIN
   COLLABORATOR
+}
+
+// White-label branding settings for each company
+model CompanyBranding {
+  id                Int       @id @default(autoincrement())
+  companyId         Int       @unique
+  logoUrl           String?   @db.VarChar(500)
+  displayName       String?   @db.VarChar(100)
+  primaryColor      String    @default("#026876")
+  secondaryColor    String    @default("#03BBAF")
+  accentColor       String    @default("#03A0A")
+  sidebarColor      String    @default("#1F2937")
+  sidebarTextColor  String    @default("#FFFFFF")
+  buttonStyle       String    @default("rounded") // rounded, square, pill
+  fontFamily        String    @default("Inter")
+  customCss         String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId], map: "CompanyBranding_companyId_fkey")
+}
+
+// Survey system for logout feedback
+enum SurveyType {
+  QUANTITATIVE     // Escala numérica (1-10)
+  SATISFACTION     // Emoticons/estrelas
+  HEATMAP          // Clique em áreas da interface
+}
+
+model Survey {
+  id          Int              @id @default(autoincrement())
+  type        SurveyType
+  question    String           @db.VarChar(500)
+  options     String?          @db.Text // JSON com opções específicas
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  responses   SurveyResponse[]
+}
+
+model SurveyResponse {
+  id          Int      @id @default(autoincrement())
+  surveyId    Int
+  userId      Int
+  companyId   Int
+  response    String   @db.Text // JSON com a resposta
+  createdAt   DateTime @default(now())
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([surveyId, userId]) // Usuário só responde uma vez cada pesquisa
+  @@index([surveyId], map: "SurveyResponse_surveyId_fkey")
+  @@index([userId], map: "SurveyResponse_userId_fkey")
+  @@index([companyId], map: "SurveyResponse_companyId_fkey")
 }
