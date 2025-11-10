@@ -68,13 +68,13 @@ export default function CompaniesTab() {
 
   function handleOpenCreate() {
     setEditCompany(null);
-    form.reset({ name: "" });
+    form.reset({ name: "", adminName: "", adminEmail: "", adminPassword: "" });
     setOpen(true);
   }
 
   function handleOpenEdit(company: Company) {
     setEditCompany(company);
-    form.reset({ name: company.name });
+    form.reset({ name: company.name, adminName: "", adminEmail: "", adminPassword: "" });
     setOpen(true);
   }
 

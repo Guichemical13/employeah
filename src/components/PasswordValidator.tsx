@@ -116,7 +116,6 @@ export default function PasswordValidator({
 
 export { PASSWORD_REQUIREMENTS, PasswordValidator };
 
-// Hook para validação de senha
 export const usePasswordValidation = (password: string) => {
   const isValid = PASSWORD_REQUIREMENTS.every(req => req.test(password));
   const fulfilledCount = PASSWORD_REQUIREMENTS.filter(req => req.test(password)).length;

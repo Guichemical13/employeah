@@ -12,6 +12,8 @@ import { useEffect, useState } from "react";
 import CategoriesTab from "./categories";
 import ForcePasswordChangeModal from "@/components/ForcePasswordChangeModal";
 import GeralTab from "./geral";
+import BrandingTab from "./branding";
+import SurveysTab from "./surveys";
 
 export default function AdminPanel() {
     const [tab, setTab] = useState<string>("");
@@ -85,6 +87,8 @@ export default function AdminPanel() {
                         {tab === "pontos" && <PointsTab />}
                         {tab === "elogios-admin" && <ElogiosTab />}
                         {tab === "notifications" && <NotificationsTab isAdminView={true} currentUser={user} />}
+                        {tab === "branding" && (user?.role === "COMPANY_ADMIN" || user?.role === "SUPER_ADMIN") && <BrandingTab />}
+                        {tab === "surveys" && user?.role === "SUPER_ADMIN" && <SurveysTab />}
                     </div>
                 </div>
             </div>

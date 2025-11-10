@@ -25,6 +25,7 @@
     "embla-carousel-react": "^8.6.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.522.0",
+    "mysql2": "^3.15.3",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -47,7 +47,6 @@ export default function PointsManagement({ onSuccess }: PointsManagementProps) {
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const { notification, showSuccess, showError, hideNotification } = useNotification();
 
-  // Buscar usuários da empresa
   useEffect(() => {
     fetchUsers();
     fetchTransactions();
@@ -162,19 +161,16 @@ export default function PointsManagement({ onSuccess }: PointsManagementProps) {
           }
         );
         
-        // Atualizar lista de usuários
         setUsers(prev => prev.map(user => 
           user.id === data.user.id 
             ? { ...user, points: data.user.points }
             : user
         ));
 
-        // Limpar formulário
         setSelectedUserId('');
         setAmount('');
         setDescription('');
 
-        // Atualizar histórico
         fetchTransactions();
         
       } else {

@@ -76,15 +76,12 @@ export default function SendCompliment({ users, onSuccess, trigger }: SendCompli
       const data = await response.json();
 
       if (response.ok) {
-        // Fechar modais
         setIsConfirmOpen(false);
         setIsOpen(false);
         
-        // Limpar formulário
         setSelectedUserId('');
         setMessage('');
 
-        // Mostrar mensagem de sucesso
         showSuccess(
           'Elogio enviado com sucesso! 🎉',
           `${selectedUser?.name} recebeu 10 pontos e agora tem ${data.recipientNewPoints} pontos no total.`,
