@@ -1,4 +1,0 @@
--- Migration to add notifications relation to User model
--- This migration adds the missing relation field in the User model for Notification
--- No database changes needed, this is just for Prisma schema validation
--- The actual foreign key constraint was already created in the previous migration

@@ -24,18 +24,11 @@ import ForcePasswordChangeModal from "@/components/ForcePasswordChangeModal";
 
 const loginSchema = z.object({
     email: z.string().email({ message: "E-mail inválido" }),
-    password: z.string(),
+    password: z.string().min(1, { message: "Senha obrigatória" }),
     rememberMe: z.boolean().optional(),
 }).superRefine((data, ctx) => {
-    if (data.email === "superadmin@employeah.com") {
-        if (data.password !== "superadmin") {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Senha do superadmin incorreta",
-                path: ["password"],
-            });
-        }
-    } else {
+    // Validação de senha forte (exceto para super admin)
+    if (data.email !== "superadmin@employeah.com.br") {
         if (data.password.length < 8) {
             ctx.addIssue({
                 code: z.ZodIssueCode.too_small,
