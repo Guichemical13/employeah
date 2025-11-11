@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Company {
@@ -38,7 +39,7 @@ model User {
   surveyResponses    SurveyResponse[]
   company            Company?           @relation(fields: [companyId], references: [id])
 
-  @@index([companyId], map: "User_companyId_fkey")
+  @@index([companyId])
 }
 
 model Category {
@@ -48,7 +49,7 @@ model Category {
   company   Company @relation(fields: [companyId], references: [id])
   items     Item[]
 
-  @@index([companyId], map: "Category_companyId_fkey")
+  @@index([companyId])
 }
 
 model Item {
@@ -61,8 +62,8 @@ model Item {
   category   Category? @relation(fields: [categoryId], references: [id])
   company    Company   @relation(fields: [companyId], references: [id])
 
-  @@index([categoryId], map: "Item_categoryId_fkey")
-  @@index([companyId], map: "Item_companyId_fkey")
+  @@index([categoryId])
+  @@index([companyId])
 }
 
 model PointTransaction {
@@ -77,8 +78,8 @@ model PointTransaction {
   company     Company  @relation(fields: [companyId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
 
-  @@index([companyId], map: "PointTransaction_companyId_fkey")
-  @@index([userId, companyId], map: "idx_pointtransaction_user_company")
+  @@index([companyId])
+  @@index([userId, companyId])
 }
 
 model Elogio {
@@ -91,8 +92,8 @@ model Elogio {
   from      User     @relation("ElogiosEnviados", fields: [fromId], references: [id])
   to        User     @relation("ElogiosRecebidos", fields: [toId], references: [id])
 
-  @@index([fromId], map: "Elogio_fromId_fkey")
-  @@index([toId, createdAt], map: "idx_elogio_to_created")
+  @@index([fromId])
+  @@index([toId, createdAt])
 }
 
 model Notification {
@@ -103,7 +104,7 @@ model Notification {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "Notification_userId_fkey")
+  @@index([userId])
 }
 
 enum UserRole {
@@ -130,7 +131,7 @@ model CompanyBranding {
   updatedAt         DateTime  @updatedAt
   company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@index([companyId], map: "CompanyBranding_companyId_fkey")
+  @@index([companyId])
 }
 
 // Survey system for logout feedback
@@ -162,8 +163,8 @@ model SurveyResponse {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@unique([surveyId, userId]) // Usuário só responde uma vez cada pesquisa
-  @@index([surveyId], map: "SurveyResponse_surveyId_fkey")
-  @@index([userId], map: "SurveyResponse_userId_fkey")
-  @@index([companyId], map: "SurveyResponse_companyId_fkey")
+  @@unique([surveyId, userId])
+  @@index([surveyId])
+  @@index([userId])
+  @@index([companyId])
 }
