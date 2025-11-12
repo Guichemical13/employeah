@@ -159,7 +159,8 @@ export default function SidebarMenu({
       className="h-full flex flex-col"
       style={{ 
         backgroundColor: branding?.sidebarColor || '#03BBAF',
-        color: branding?.sidebarTextColor || '#000000'
+        color: branding?.sidebarTextColor || '#000000',
+        boxShadow: '2px 0px 10px 0px rgba(43, 43, 43, 0.4)',
       }}
     >
       <div className="flex flex-col items-center py-4 px-3 border-b" style={{ borderColor: `${branding?.sidebarTextColor || '#bcb8e6'}30` }}>

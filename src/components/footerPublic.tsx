@@ -28,12 +28,9 @@ export function FooterPublic() {
                                 alt="EmploYEAH Logo" 
                                 width={160} 
                                 height={160} 
-                                className="w-32 md:w-40"
+                                className="w-32 md:w-50"
                             />
                         </div>
-                        <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-                            Recompense seu time com propósito e transforme o engajamento da sua empresa.
-                        </p>
                         <div className="flex items-center gap-4">
                             <a 
                                 href="https://instagram.com" 
