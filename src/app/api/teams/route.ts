@@ -1,26 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { verifyToken } from "@/lib/auth-utils";
+import { verifyToken } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
 // GET /api/teams - Listar times
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    const decoded = await verifyToken(req);
+    if (!decoded) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
+    const userId = typeof decoded === 'string' ? undefined : decoded.id;
+    if (!userId) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: userId },
       include: { company: true },
     });
 
@@ -93,20 +91,18 @@ export async function GET(req: NextRequest) {
 // POST /api/teams - Criar novo time
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    const decoded = await verifyToken(req);
+    if (!decoded) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
+    const userId = typeof decoded === 'string' ? undefined : decoded.id;
+    if (!userId) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: userId },
     });
 
     if (!user) {

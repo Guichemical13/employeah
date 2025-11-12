@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { verifyToken } from "@/lib/auth-utils";
+import { verifyToken } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -10,20 +10,18 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    const decoded = await verifyToken(req);
+    if (!decoded) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
+    const userId = typeof decoded === 'string' ? undefined : decoded.id;
+    if (!userId) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -75,20 +73,18 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    const decoded = await verifyToken(req);
+    if (!decoded) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
+    const userId = typeof decoded === 'string' ? undefined : decoded.id;
+    if (!userId) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -183,20 +179,18 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    const decoded = await verifyToken(req);
+    if (!decoded) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
+    const userId = typeof decoded === 'string' ? undefined : decoded.id;
+    if (!userId) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: userId },
     });
 
     if (!user) {
