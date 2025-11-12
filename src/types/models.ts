@@ -67,4 +67,5 @@ export interface Team {
   updatedAt: string;
   supervisor?: User;
   members?: User[];
+  company?: Company;
 }
