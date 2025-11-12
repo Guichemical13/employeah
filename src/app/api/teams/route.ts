@@ -1,0 +1,178 @@
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { verifyToken } from "@/lib/auth-utils";
+
+const prisma = new PrismaClient();
+
+// GET /api/teams - Listar times
+export async function GET(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
+
+    if (!token) {
+      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: { company: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+    }
+
+    // SUPER_ADMIN pode ver todos os times
+    // COMPANY_ADMIN pode ver apenas times da sua empresa
+    // SUPERVISOR pode ver apenas seu time
+    let teams;
+
+    if (user.role === "SUPER_ADMIN") {
+      teams = await prisma.team.findMany({
+        include: {
+          company: { select: { id: true, name: true } },
+          supervisor: { select: { id: true, name: true, email: true } },
+          members: { select: { id: true, name: true, email: true, role: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (user.role === "COMPANY_ADMIN") {
+      if (!user.companyId) {
+        return NextResponse.json({ error: "Admin sem empresa vinculada" }, { status: 403 });
+      }
+
+      teams = await prisma.team.findMany({
+        where: { companyId: user.companyId },
+        include: {
+          company: { select: { id: true, name: true } },
+          supervisor: { select: { id: true, name: true, email: true } },
+          members: { select: { id: true, name: true, email: true, role: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (user.role === "SUPERVISOR") {
+      teams = await prisma.team.findMany({
+        where: { supervisorId: user.id },
+        include: {
+          company: { select: { id: true, name: true } },
+          supervisor: { select: { id: true, name: true, email: true } },
+          members: { select: { id: true, name: true, email: true, role: true } },
+        },
+      });
+    } else {
+      // Colaboradores podem ver seu próprio time
+      if (!user.teamId) {
+        return NextResponse.json({ teams: [] });
+      }
+
+      const team = await prisma.team.findUnique({
+        where: { id: user.teamId },
+        include: {
+          company: { select: { id: true, name: true } },
+          supervisor: { select: { id: true, name: true, email: true } },
+          members: { select: { id: true, name: true, email: true, role: true } },
+        },
+      });
+
+      teams = team ? [team] : [];
+    }
+
+    return NextResponse.json({ teams });
+  } catch (error) {
+    console.error("Erro ao buscar times:", error);
+    return NextResponse.json({ error: "Erro ao buscar times" }, { status: 500 });
+  }
+}
+
+// POST /api/teams - Criar novo time
+export async function POST(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
+
+    if (!token) {
+      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+    }
+
+    // Apenas SUPER_ADMIN e COMPANY_ADMIN podem criar times
+    if (user.role !== "SUPER_ADMIN" && user.role !== "COMPANY_ADMIN") {
+      return NextResponse.json({ error: "Sem permissão para criar times" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const { name, description, companyId, supervisorId } = body;
+
+    if (!name || !companyId) {
+      return NextResponse.json({ error: "Nome e companyId são obrigatórios" }, { status: 400 });
+    }
+
+    // COMPANY_ADMIN só pode criar times na própria empresa
+    if (user.role === "COMPANY_ADMIN" && user.companyId !== companyId) {
+      return NextResponse.json({ error: "Você só pode criar times na sua empresa" }, { status: 403 });
+    }
+
+    // Verificar se o supervisor existe e pertence à empresa
+    if (supervisorId) {
+      const supervisor = await prisma.user.findUnique({
+        where: { id: supervisorId },
+      });
+
+      if (!supervisor || supervisor.companyId !== companyId) {
+        return NextResponse.json({ error: "Supervisor inválido ou não pertence à empresa" }, { status: 400 });
+      }
+
+      // Verificar se o supervisor já gerencia outro time
+      const existingTeam = await prisma.team.findFirst({
+        where: { supervisorId },
+      });
+
+      if (existingTeam) {
+        return NextResponse.json({ error: "Este supervisor já gerencia outro time" }, { status: 400 });
+      }
+
+      // Atualizar role do usuário para SUPERVISOR
+      await prisma.user.update({
+        where: { id: supervisorId },
+        data: { role: "SUPERVISOR" },
+      });
+    }
+
+    const team = await prisma.team.create({
+      data: {
+        name,
+        description,
+        companyId,
+        supervisorId,
+      },
+      include: {
+        company: { select: { id: true, name: true } },
+        supervisor: { select: { id: true, name: true, email: true } },
+        members: { select: { id: true, name: true, email: true, role: true } },
+      },
+    });
+
+    return NextResponse.json({ team }, { status: 201 });
+  } catch (error) {
+    console.error("Erro ao criar time:", error);
+    return NextResponse.json({ error: "Erro ao criar time" }, { status: 500 });
+  }
+}
