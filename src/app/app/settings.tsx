@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +14,15 @@ import type { User } from "@/types/models";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
-  email: z.string().email("E-mail inválido")
+  email: z.string().email("E-mail inválido"),
+  username: z.string()
+    .min(3, "Username deve ter no mínimo 3 caracteres")
+    .max(50, "Username deve ter no máximo 50 caracteres")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username deve conter apenas letras, números e underscore")
+    .optional()
+    .or(z.literal("")),
+  profilePicture: z.string().url("URL inválida").optional().or(z.literal("")),
+  bio: z.string().max(200, "Bio deve ter no máximo 200 caracteres").optional().or(z.literal(""))
 });
 type ProfileForm = z.infer<typeof profileSchema>;
 
@@ -42,7 +51,7 @@ export default function SettingsTab() {
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: "", email: "" },
+    defaultValues: { name: "", email: "", username: "", profilePicture: "", bio: "" },
   });
 
   const passwordForm = useForm<PasswordForm>({
@@ -60,7 +69,13 @@ export default function SettingsTab() {
     const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
     const data = await res.json();
     setUser(data.user);
-    form.reset({ name: data.user?.name || "", email: data.user?.email || "" });
+    form.reset({ 
+      name: data.user?.name || "", 
+      email: data.user?.email || "",
+      username: data.user?.username || "",
+      profilePicture: data.user?.profilePicture || "",
+      bio: data.user?.bio || ""
+    });
     setLoading(false);
   }
 
@@ -128,16 +143,56 @@ export default function SettingsTab() {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="font-bold mb-2">Perfil do Usuário</div>
+        <div className="font-bold text-xl mb-4">Perfil do Usuário</div>
         {loading ? (
           <div className="text-gray-400">Carregando...</div>
         ) : user ? (
-          <div>
-            <div><b>Nome:</b> {user.name}</div>
-            <div><b>Email:</b> {user.email}</div>
-            <div><b>Empresa:</b> {user.companyId || "-"}</div>
-            <div><b>Role:</b> {user.role}</div>
-            <div className="flex gap-2 mt-4">
+          <div className="space-y-4">
+            {user.profilePicture && (
+              <div className="flex justify-center mb-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={user.profilePicture} 
+                  alt={user.name}
+                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                />
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm text-gray-500">Nome</div>
+                <div className="font-medium">{user.name}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Email</div>
+                <div className="font-medium">{user.email}</div>
+              </div>
+              {user.username && (
+                <div>
+                  <div className="text-sm text-gray-500">Username</div>
+                  <div className="font-medium">@{user.username}</div>
+                </div>
+              )}
+              <div>
+                <div className="text-sm text-gray-500">Empresa ID</div>
+                <div className="font-medium">{user.companyId || "-"}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Role</div>
+                <div className="font-medium">{user.role}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Pontos</div>
+                <div className="font-medium">{user.points} pts</div>
+              </div>
+            </div>
+            {user.bio && (
+              <div>
+                <div className="text-sm text-gray-500">Bio</div>
+                <div className="font-medium">{user.bio}</div>
+              </div>
+            )}
+            <div className="flex gap-2 mt-4 pt-4 border-t">
               <Button onClick={handleOpenEdit}>Editar Perfil</Button>
               <Button variant="outline" onClick={handleOpenPasswordChange}>Alterar Senha</Button>
             </div>
@@ -153,7 +208,7 @@ export default function SettingsTab() {
             <DialogTitle>Editar Perfil</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <FormField
                 control={form.control}
                 name="name"
@@ -177,6 +232,51 @@ export default function SettingsTab() {
                       <Input {...field} />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username (opcional)</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">@</span>
+                        <Input {...field} placeholder="seu_username" />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-gray-500">Apenas letras, números e underscore</p>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="profilePicture"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL da Foto de Perfil (opcional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://exemplo.com/foto.jpg" />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-gray-500">Cole o link de uma imagem hospedada online</p>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio (opcional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Conte um pouco sobre você..." maxLength={200} />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-gray-500">Máximo 200 caracteres</p>
                   </FormItem>
                 )}
               />
