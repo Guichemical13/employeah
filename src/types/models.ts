@@ -13,6 +13,9 @@ export interface User {
   companyId?: number;
   teamId?: number;
   points: number;
+  username?: string;
+  profilePicture?: string;
+  bio?: string;
   createdAt: string;
   updatedAt: string;
   mustChangePassword?: boolean;
