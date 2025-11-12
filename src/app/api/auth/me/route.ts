@@ -27,8 +27,12 @@ export async function GET(req: NextRequest) {
       email: true,
       role: true,
       companyId: true,
+      teamId: true,
       mustChangePassword: true,
       points: true,
+      username: true,
+      profilePicture: true,
+      bio: true,
       createdAt: true,
       updatedAt: true,
     }
