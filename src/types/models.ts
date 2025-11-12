@@ -9,12 +9,14 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'COLLABORATOR';
+  role: 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'SUPERVISOR' | 'COLLABORATOR';
   companyId?: number;
+  teamId?: number;
   points: number;
   createdAt: string;
   updatedAt: string;
   mustChangePassword?: boolean;
+  team?: Team;
 }
 
 export interface Category {
@@ -50,4 +52,16 @@ export interface Elogio {
   toId: number;
   likes: number;
   createdAt: string;
+}
+
+export interface Team {
+  id: number;
+  name: string;
+  description?: string;
+  companyId: number;
+  supervisorId?: number;
+  createdAt: string;
+  updatedAt: string;
+  supervisor?: User;
+  members?: User[];
 }
