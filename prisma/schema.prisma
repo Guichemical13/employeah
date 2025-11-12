@@ -17,6 +17,7 @@ model Company {
   items           Item[]
   transactions    PointTransaction[]
   users           User[]
+  teams           Team[]
   branding        CompanyBranding?
   surveyResponses SurveyResponse[]
 }
@@ -28,6 +29,7 @@ model User {
   password           String
   role               UserRole
   companyId          Int?
+  teamId             Int?
   points             Int                @default(0)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
@@ -38,8 +40,11 @@ model User {
   transactions       PointTransaction[]
   surveyResponses    SurveyResponse[]
   company            Company?           @relation(fields: [companyId], references: [id])
+  team               Team?              @relation("TeamMembers", fields: [teamId], references: [id])
+  supervisedTeams    Team[]             @relation("TeamSupervisor")
 
   @@index([companyId])
+  @@index([teamId])
 }
 
 model Category {
@@ -110,7 +115,24 @@ model Notification {
 enum UserRole {
   SUPER_ADMIN
   COMPANY_ADMIN
+  SUPERVISOR
   COLLABORATOR
+}
+
+model Team {
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String?   @db.VarChar(500)
+  companyId    Int
+  supervisorId Int?      @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  supervisor   User?     @relation("TeamSupervisor", fields: [supervisorId], references: [id])
+  members      User[]    @relation("TeamMembers")
+
+  @@index([companyId])
+  @@index([supervisorId])
 }
 
 // White-label branding settings for each company
