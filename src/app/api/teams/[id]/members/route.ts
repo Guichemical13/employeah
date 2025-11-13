@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // POST /api/teams/[id]/members - Adicionar membro ao time
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = await verifyToken(req);
@@ -28,7 +28,8 @@ export async function POST(
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
     }
 
-    const teamId = parseInt(params.id);
+    const { id } = await params;
+    const teamId = parseInt(id);
     const team = await prisma.team.findUnique({
       where: { id: teamId },
     });
@@ -99,7 +100,7 @@ export async function POST(
 // DELETE /api/teams/[id]/members - Remover membro do time
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = await verifyToken(req);
@@ -120,7 +121,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
     }
 
-    const teamId = parseInt(params.id);
+    const { id } = await params;
+    const teamId = parseInt(id);
     const team = await prisma.team.findUnique({
       where: { id: teamId },
     });
