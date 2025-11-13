@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = await verifyToken(req);
@@ -15,7 +15,7 @@ export async function GET(
     const userId = (decoded as any).userId;
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: await { id: userId },
       select: { role: true, companyId: true },
     });
 
