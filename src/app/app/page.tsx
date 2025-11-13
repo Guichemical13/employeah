@@ -61,7 +61,20 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SidebarMenu tab={tab} setTab={setTab} onLogout={handleLogout} />
+      <SidebarMenu 
+        tab={tab} 
+        setTab={setTab} 
+        onLogout={handleLogout}
+        userProfile={user ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+          profilePicture: user.profilePicture,
+          role: user.role,
+          points: user.points
+        } : undefined}
+      />
       <div className="lg:ml-64 pt-16 lg:pt-0">
         <div className="p-4 lg:p-6">
           <div className="w-full">

@@ -16,6 +16,9 @@ import {
   Heart,
   Palette,
   BarChart3,
+  UserCircle2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useBranding } from "@/hooks/useBranding";
@@ -36,7 +39,18 @@ export type SidebarTab =
   | "pontos"
   | "elogios-admin"
   | "branding"
-  | "surveys";
+  | "surveys"
+  | "times";
+
+interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  username?: string;
+  profilePicture?: string;
+  role: string;
+  points: number;
+}
 
 interface SidebarMenuProps {
   tab: string;
@@ -44,6 +58,7 @@ interface SidebarMenuProps {
   onLogout: () => void;
   showAdminTabs?: boolean;
   userRole?: string;
+  userProfile?: UserProfile;
 }
 
 export default function SidebarMenu({
@@ -52,11 +67,13 @@ export default function SidebarMenu({
   onLogout,
   showAdminTabs,
   userRole,
+  userProfile,
 }: SidebarMenuProps) {
   const { unreadCount } = useNotifications();
   const { branding, loading } = useBranding();
   const [showSurvey, setShowSurvey] = useState(false);
   const [hasPendingSurvey, setHasPendingSurvey] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(true);
 
   useEffect(() => {
     if (userRole !== "SUPER_ADMIN") {
@@ -116,22 +133,24 @@ export default function SidebarMenu({
   const getButtonStyle = (isActive: boolean) => {
     if (isActive) {
       return {
-        backgroundColor: branding?.primaryColor || '#FFFFFF',
-        color: branding?.sidebarTextColor === '#FFFFFF' ? '#000000' : branding?.primaryColor || '#5a5ad6',
+        backgroundColor: `${branding?.primaryColor || '#FFFFFF'}20`,
+        color: '#FFFFFF',
+        borderLeft: `4px solid ${branding?.primaryColor || '#FFFFFF'}`,
       };
     }
     return {
       color: branding?.sidebarTextColor || '#374151',
+      borderLeft: '4px solid transparent',
     };
   };
 
   const getButtonClass = (isActive: boolean) => {
-    const borderRadius = branding?.buttonStyle === 'pill' ? 'rounded-full' : 
+    const borderRadius = branding?.buttonStyle === 'pill' ? 'rounded-r-full' : 
                         branding?.buttonStyle === 'square' ? 'rounded-none' : 
-                        'rounded-lg';
+                        'rounded-r-md';
     
-    return `justify-start text-base font-medium w-full flex gap-2 p-3 transition-all ${borderRadius} ${
-      isActive ? 'shadow-md' : 'hover:bg-white/10'
+    return `justify-start text-sm font-medium w-full flex items-center gap-2 py-2 px-3 transition-all ${borderRadius} ${
+      isActive ? '' : 'hover:bg-white/10'
     }`;
   };
 
@@ -139,216 +158,272 @@ export default function SidebarMenu({
     <div 
       className="h-full flex flex-col"
       style={{ 
-        backgroundColor: branding?.sidebarColor || '#d6d3f5',
-        color: branding?.sidebarTextColor || '#000000'
+        backgroundColor: branding?.sidebarColor || '#03BBAF',
+        color: branding?.sidebarTextColor || '#000000',
+        boxShadow: '2px 0px 10px 0px rgba(43, 43, 43, 0.4)',
       }}
     >
-      <div className="flex flex-col items-center py-6 border-b" style={{ borderColor: `${branding?.sidebarTextColor || '#bcb8e6'}30` }}>
-        <div className="flex items-center gap-3">
-          <Image src="/logo.svg" alt="EmploYEAH!" width={40} height={40} />
-          {branding?.logoUrl && (
-            <>
-              <div className="h-8 w-px" style={{ backgroundColor: `${branding.sidebarTextColor}40` }}></div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={branding.logoUrl} 
-                alt="Logo da Empresa" 
-                width={40} 
-                height={40}
-                className="object-contain max-w-[40px] max-h-[40px]"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </>
+      <div className="flex flex-col items-center py-4 px-3 border-b" style={{ borderColor: `${branding?.sidebarTextColor || '#bcb8e6'}30` }}>
+        <div className="w-full flex justify-center items-center">
+          {branding?.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={branding.logoUrl}
+              alt="Logo da Empresa"
+              className="w-full object-contain max-h-16"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : (
+            <Image src="/logo.svg" alt="EmploYEAH!" width={48} height={48} />
           )}
         </div>
-        <h1 className="text-base font-bold mt-3" style={{ color: branding?.primaryColor || '#5a5ad6' }}>
+        <h1 className="text-base font-bold mt-2" style={{ color: branding?.primaryColor || '#ffffff' , fontWeight: 'bold' }}>
           {branding?.displayName || 'EmploYEAH!'}
         </h1>
       </div>
-      <div className="flex-1 flex flex-col justify-center px-2">
-        <div className="flex flex-col gap-2 p-2 w-full">
+      
+      {/* Perfil do Usuário - Centralizado */}
+      {userProfile && (
+        <div className="flex flex-col items-center py-4 px-3 border-b" style={{ borderColor: `${branding?.sidebarTextColor || '#bcb8e6'}30` }}>
+          <div className="relative w-16 h-16 flex-shrink-0">
+            {userProfile.profilePicture ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={userProfile.profilePicture}
+                alt={userProfile.name}
+                className="w-full h-full rounded-full object-cover border-2"
+                style={{ borderColor: branding?.primaryColor || '#ffffff' }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                  (e.currentTarget.nextElementSibling as HTMLElement)?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <UserCircle2 
+              size={64} 
+              className={userProfile.profilePicture ? "hidden" : ""}
+              style={{ color: branding?.primaryColor || '#ffffff' }}
+            />
+          </div>
+          <h2 className="text-sm font-bold mt-2 text-center" style={{ color: branding?.sidebarTextColor || '#ffffff' }}>
+            {userProfile.name}
+          </h2>
+          {userProfile.username && (
+            <p className="text-xs opacity-70 text-center" style={{ color: branding?.sidebarTextColor || '#ffffff' }}>
+              @{userProfile.username}
+            </p>
+          )}
+          <div className="flex items-center gap-1 mt-2 px-3 py-1 rounded-full" style={{ backgroundColor: `${branding?.primaryColor || '#ffffff'}20` }}>
+            <Coins size={14} style={{ color: branding?.primaryColor || '#ffffff' }} />
+            <span className="text-xs font-semibold" style={{ color: branding?.primaryColor || '#ffffff' }}>
+              {userProfile.points} pts
+            </span>
+          </div>
+        </div>
+      )}
+      <div className="flex-1 overflow-y-auto px-2 py-2">
+        <div className="flex flex-col gap-1 w-full">
           {showAdminTabs ? (
             <>
-              {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
-                <button
-                  onClick={() => handleTabChange("geral")}
-                  className={getButtonClass(tab === "geral")}
-                  style={getButtonStyle(tab === "geral")}
-                >
-                  <LayoutDashboard size={18} /> Geral
-                </button>
-              )}
-              {userRole === "SUPER_ADMIN" && (
-                <button
-                  onClick={() => handleTabChange("empresas")}
-                  className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                    tab === "empresas" 
-                      ? "bg-white text-[#5a5ad6] shadow-sm" 
-                      : "text-gray-700 hover:bg-white/50"
-                  }`}
-                >
-                  <Building2 size={18} /> Empresas
-                </button>
-              )}
-              <button
-                onClick={() => handleTabChange("usuarios")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "usuarios" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Users size={18} /> Usuários
-              </button>
-              <button
-                onClick={() => handleTabChange("itens")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "itens" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Trophy size={18} /> Itens
-              </button>
-              <button
-                onClick={() => handleTabChange("categorias")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "categorias" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <LayoutDashboard size={18} /> Categorias
-              </button>
-              <button
-                onClick={() => handleTabChange("pontos")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "pontos" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Coins size={18} /> Gestão de Pontos
-              </button>
-              <button
-                onClick={() => handleTabChange("elogios-admin")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "elogios-admin" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Heart size={18} /> Mural de Elogios
-              </button>
-              {(userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN") && (
-                <button
-                  onClick={() => handleTabChange("branding")}
-                  className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                    tab === "branding" 
-                      ? "bg-white text-[#5a5ad6] shadow-sm" 
-                      : "text-gray-700 hover:bg-white/50"
-                  }`}
-                >
-                  <Palette size={18} /> Branding
-                </button>
-              )}
-              {userRole === "SUPER_ADMIN" && (
-                <button
-                  onClick={() => handleTabChange("surveys")}
-                  className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                    tab === "surveys" 
-                      ? "bg-white text-[#5a5ad6] shadow-sm" 
-                      : "text-gray-700 hover:bg-white/50"
-                  }`}
-                >
-                  <BarChart3 size={18} /> Analytics Surveys
-                </button>
-              )}
-              <button
-                onClick={() => handleTabChange("notifications")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors relative ${
-                  tab === "notifications" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Bell size={18} /> Notificações
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-5 text-center leading-none">
-                    {unreadCount}
+              {/* PAINEL */}
+              <div className="mb-0.5">
+                <div className="px-2 py-0.5">
+                  <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                    Painel
                   </span>
+                </div>
+                {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
+                  <button
+                    onClick={() => handleTabChange("geral")}
+                    className={getButtonClass(tab === "geral")}
+                    style={getButtonStyle(tab === "geral")}
+                  >
+                    <LayoutDashboard size={16} /> <span>Geral</span>
+                  </button>
                 )}
-              </button>
+                
+                {userRole === "SUPER_ADMIN" && (
+                  <button
+                    onClick={() => handleTabChange("empresas")}
+                    className={getButtonClass(tab === "empresas")}
+                    style={getButtonStyle(tab === "empresas")}
+                  >
+                    <Building2 size={16} /> <span>Empresas</span>
+                  </button>
+                )}
+              </div>
+              
+              {/* GESTÃO - Colapsável */}
+              {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
+                <div className="mb-0.5">
+                  <button
+                    onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                    className="justify-start font-semibold w-full flex items-center gap-2 px-2 py-0.5 transition-colors"
+                    style={{ 
+                      color: branding?.sidebarTextColor || '#374151',
+                    }}
+                  >
+                    {isAdminMenuOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    <span className="text-xs uppercase tracking-wide opacity-60">Gestão</span>
+                  </button>
+                  
+                  {isAdminMenuOpen && (
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => handleTabChange("usuarios")}
+                        className={getButtonClass(tab === "usuarios")}
+                        style={getButtonStyle(tab === "usuarios")}
+                      >
+                        <Users size={16} /> <span>Usuários</span>
+                      </button>
+                      <button
+                        onClick={() => handleTabChange("times")}
+                        className={getButtonClass(tab === "times")}
+                        style={getButtonStyle(tab === "times")}
+                      >
+                        <Users size={16} /> <span>Times</span>
+                      </button>
+                      <button
+                        onClick={() => handleTabChange("itens")}
+                        className={getButtonClass(tab === "itens")}
+                        style={getButtonStyle(tab === "itens")}
+                      >
+                        <Trophy size={16} /> <span>Itens</span>
+                      </button>
+                      <button
+                        onClick={() => handleTabChange("categorias")}
+                        className={getButtonClass(tab === "categorias")}
+                        style={getButtonStyle(tab === "categorias")}
+                      >
+                        <LayoutDashboard size={16} /> <span>Categorias</span>
+                      </button>
+                      <button
+                        onClick={() => handleTabChange("pontos")}
+                        className={getButtonClass(tab === "pontos")}
+                        style={getButtonStyle(tab === "pontos")}
+                      >
+                        <Coins size={16} /> <span>Pontos</span>
+                      </button>
+                      <button
+                        onClick={() => handleTabChange("elogios-admin")}
+                        className={getButtonClass(tab === "elogios-admin")}
+                        style={getButtonStyle(tab === "elogios-admin")}
+                      >
+                        <Heart size={16} /> <span>Elogios</span>
+                      </button>
+                      <button
+                        onClick={() => handleTabChange("branding")}
+                        className={getButtonClass(tab === "branding")}
+                        style={getButtonStyle(tab === "branding")}
+                      >
+                        <Palette size={16} /> <span>Branding</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* SISTEMA */}
+              <div className="mb-0.5">
+                <div className="px-2 py-0.5">
+                  <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                    Sistema
+                  </span>
+                </div>
+                {userRole === "SUPER_ADMIN" && (
+                  <button
+                    onClick={() => handleTabChange("surveys")}
+                    className={getButtonClass(tab === "surveys")}
+                    style={getButtonStyle(tab === "surveys")}
+                  >
+                    <BarChart3 size={16} /> <span>Surveys</span>
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => handleTabChange("notifications")}
+                  className={getButtonClass(tab === "notifications") + " relative"}
+                  style={getButtonStyle(tab === "notifications")}
+                >
+                  <Bell size={16} /> <span>Notificações</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              </div>
             </>
           ) : (
             <>
-              <button
-                onClick={() => handleTabChange("central")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "central" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <LayoutDashboard size={18} /> Central
-              </button>
-              <button
-                onClick={() => handleTabChange("rewards")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "rewards" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Trophy size={18} /> Recompensas
-              </button>
-              <button
-                onClick={() => handleTabChange("elogios")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors ${
-                  tab === "elogios" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Handshake size={18} /> Elogios
-              </button>
-              <button
-                onClick={() => handleTabChange("notifications")}
-                className={`justify-start text-base font-medium w-full flex gap-2 p-3 rounded-lg transition-colors relative ${
-                  tab === "notifications" 
-                    ? "bg-white text-[#5a5ad6] shadow-sm" 
-                    : "text-gray-700 hover:bg-white/50"
-                }`}
-              >
-                <Bell size={18} /> Notificações
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-5 text-center leading-none">
-                    {unreadCount}
+              {/* MENU */}
+              <div className="mb-0.5">
+                <div className="px-2 py-0.5">
+                  <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                    Menu
                   </span>
-                )}
-              </button>
+                </div>
+                <button
+                  onClick={() => handleTabChange("central")}
+                  className={getButtonClass(tab === "central")}
+                  style={getButtonStyle(tab === "central")}
+                >
+                  <LayoutDashboard size={16} /> <span>Central</span>
+                </button>
+                <button
+                  onClick={() => handleTabChange("rewards")}
+                  className={getButtonClass(tab === "rewards")}
+                  style={getButtonStyle(tab === "rewards")}
+                >
+                  <Trophy size={16} /> <span>Recompensas</span>
+                </button>
+                <button
+                  onClick={() => handleTabChange("elogios")}
+                  className={getButtonClass(tab === "elogios")}
+                  style={getButtonStyle(tab === "elogios")}
+                >
+                  <Handshake size={16} /> <span>Elogios</span>
+                </button>
+                <button
+                  onClick={() => handleTabChange("notifications")}
+                  className={getButtonClass(tab === "notifications") + " relative"}
+                  style={getButtonStyle(tab === "notifications")}
+                >
+                  <Bell size={16} /> <span>Notificações</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              </div>
             </>
           )}
         </div>
       </div>
-      <div className="flex flex-col gap-2 p-4 border-t border-[#bcb8e6]">
+      <div className="bg-white flex ">
         <button
           onClick={() => handleTabChange("ajustes")}
-          className={`flex items-center gap-2 text-base font-medium p-3 rounded-lg transition-colors w-full ${
-            tab === "ajustes" 
-              ? "bg-white text-[#5a5ad6] shadow-sm" 
-              : "text-gray-700 hover:bg-white/50"
-          }`}
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 px-2 transition-colors hover:bg-gray-100 border-r border-gray-200"
+          style={tab === "ajustes" ? {
+            backgroundColor: branding?.primaryColor || '#2b2b2b',
+            color: '#ffffff'
+          } : {
+            color: '#374151'
+          }}
         >
-          <Settings size={18} /> Ajustes
+          <Settings size={18} />
+          <span className="text-xs font-medium">Ajustes</span>
         </button>
         <button
           onClick={handleLogoutClick}
-          className="flex items-center gap-2 text-base font-medium text-blue-700 hover:bg-blue-50 p-3 rounded-lg transition-colors w-full"
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 px-2 transition-colors hover:bg-red-50"
+          style={{ color: '#ef4444' }}
         >
-          <LogOut size={18} /> <span className="font-bold">Sair</span>
+          <LogOut size={18} />
+          <span className="text-xs font-semibold">Sair</span>
         </button>
       </div>
     </div>

@@ -14,6 +14,7 @@ import ForcePasswordChangeModal from "@/components/ForcePasswordChangeModal";
 import GeralTab from "./geral";
 import BrandingTab from "./branding";
 import SurveysTab from "./surveys";
+import TimesTab from "./times";
 
 export default function AdminPanel() {
     const [tab, setTab] = useState<string>("");
@@ -74,13 +75,29 @@ export default function AdminPanel() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <SidebarMenu tab={tab} setTab={setTab} onLogout={handleLogout} showAdminTabs userRole={user?.role} />
+            <SidebarMenu 
+                tab={tab} 
+                setTab={setTab} 
+                onLogout={handleLogout} 
+                showAdminTabs 
+                userRole={user?.role}
+                userProfile={user ? {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    username: user.username,
+                    profilePicture: user.profilePicture,
+                    role: user.role,
+                    points: user.points
+                } : undefined}
+            />
             <div className="lg:ml-64 pt-16 lg:pt-0">
                 <div className="p-4 lg:p-6">
                     <div className="w-full">
                         {tab === "geral" && <GeralTab user={user} />}
                         {tab === "empresas" && user?.role === "SUPER_ADMIN" && <CompaniesTab />}
                         {tab === "usuarios" && <UsersTab />}
+                        {tab === "times" && (user?.role === "COMPANY_ADMIN" || user?.role === "SUPER_ADMIN") && <TimesTab />}
                         {tab === "itens" && <ItemsTab />}
                         {tab === "ajustes" && <SettingsTab />}
                         {tab === "categorias" && <CategoriesTab />}

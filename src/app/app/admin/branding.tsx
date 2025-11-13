@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Palette, Upload, Eye, Save, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 
 export default function BrandingAdmin() {
   const [loading, setLoading] = useState(true);
@@ -22,8 +22,7 @@ export default function BrandingAdmin() {
     sidebarColor: "#1F2937",
     sidebarTextColor: "#FFFFFF",
     buttonStyle: "rounded",
-    fontFamily: "Inter",
-    customCss: "",
+    fontFamily: "Sansation",
   });
 
   useEffect(() => {
@@ -63,8 +62,7 @@ export default function BrandingAdmin() {
         sidebarColor: brandingData.sidebarColor || "#1F2937",
         sidebarTextColor: brandingData.sidebarTextColor || "#FFFFFF",
         buttonStyle: brandingData.buttonStyle || "rounded",
-        fontFamily: brandingData.fontFamily || "Inter",
-        customCss: brandingData.customCss || "",
+        fontFamily: brandingData.fontFamily || "Sansation",
       });
     } catch (error) {
       console.error("Erro ao carregar branding:", error);
@@ -91,13 +89,15 @@ export default function BrandingAdmin() {
 
       if (!res.ok) throw new Error("Erro ao salvar branding");
 
-      alert("✅ Configurações salvas com sucesso!");
+      toast.success("✅ Configurações salvas com sucesso!");
       
-      // Recarregar a página para aplicar as mudanças
-      window.location.reload();
+      // Recarregar a página após um delay para mostrar o toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error("Erro ao salvar:", error);
-      alert("❌ Erro ao salvar configurações");
+      toast.error("❌ Erro ao salvar configurações");
     } finally {
       setSaving(false);
     }
@@ -114,8 +114,7 @@ export default function BrandingAdmin() {
         sidebarColor: "#1F2937",
         sidebarTextColor: "#FFFFFF",
         buttonStyle: "rounded",
-        fontFamily: "Inter",
-        customCss: "",
+        fontFamily: "Sansation",
       });
     }
   };
@@ -133,7 +132,7 @@ export default function BrandingAdmin() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#026876]">Personalização White-Label</h1>
+          <h1 className="text-3xl font-bold text-[#026876]">Branding</h1>
           <p className="text-gray-600 mt-2">
             Configure a identidade visual da sua empresa no sistema
           </p>
@@ -167,8 +166,8 @@ export default function BrandingAdmin() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Logo da Empresa */}
+      <div className="space-y-6">
+        {/* Primeira Linha: Logo */}
         <Card className="border-2 border-gray-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -224,8 +223,10 @@ export default function BrandingAdmin() {
           </CardContent>
         </Card>
 
-        {/* Cores do Sistema */}
-        <Card className="border-2 border-gray-200">
+        {/* Segunda Linha: Cores e Preview lado a lado */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Cores do Sistema */}
+          <Card className="border-2 border-gray-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="w-5 h-5 text-[#03BBAF]" />
@@ -235,8 +236,8 @@ export default function BrandingAdmin() {
               Personalize as cores principais do sistema
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="primaryColor">Cor Primária</Label>
                 <div className="flex gap-2">
@@ -308,29 +309,92 @@ export default function BrandingAdmin() {
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="sidebarTextColor">Cor do Texto do Menu</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="sidebarTextColor"
-                  type="color"
-                  value={branding.sidebarTextColor}
-                  onChange={(e) => setBranding({ ...branding, sidebarTextColor: e.target.value })}
-                  className="w-20 h-12 cursor-pointer"
-                />
-                <Input
-                  value={branding.sidebarTextColor}
-                  onChange={(e) => setBranding({ ...branding, sidebarTextColor: e.target.value })}
-                  className="flex-1 h-12"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="sidebarTextColor">Cor do Texto do Menu</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="sidebarTextColor"
+                    type="color"
+                    value={branding.sidebarTextColor}
+                    onChange={(e) => setBranding({ ...branding, sidebarTextColor: e.target.value })}
+                    className="w-20 h-12 cursor-pointer"
+                  />
+                  <Input
+                    value={branding.sidebarTextColor}
+                    onChange={(e) => setBranding({ ...branding, sidebarTextColor: e.target.value })}
+                    className="flex-1 h-12"
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Estilos de Interface */}
+          {/* Preview de Cores - Lado a lado com cores */}
+          <Card className="border-2 border-[#03BBAF]/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5 text-[#03BBAF]" />
+                Preview das Cores
+              </CardTitle>
+              <CardDescription>
+                Visualização da paleta de cores
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600">Primária</p>
+                  <div
+                    className="h-12 rounded-lg shadow-md"
+                    style={{ backgroundColor: branding.primaryColor }}
+                  ></div>
+                  <p className="text-xs text-gray-500 font-mono">{branding.primaryColor}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600">Secundária</p>
+                  <div
+                    className="h-12 rounded-lg shadow-md"
+                    style={{ backgroundColor: branding.secondaryColor }}
+                  ></div>
+                  <p className="text-xs text-gray-500 font-mono">{branding.secondaryColor}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600">Destaque</p>
+                  <div
+                    className="h-12 rounded-lg shadow-md"
+                    style={{ backgroundColor: branding.accentColor }}
+                  ></div>
+                  <p className="text-xs text-gray-500 font-mono">{branding.accentColor}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600">Menu</p>
+                  <div
+                    className="h-12 rounded-lg shadow-md"
+                    style={{ backgroundColor: branding.sidebarColor }}
+                  ></div>
+                  <p className="text-xs text-gray-500 font-mono">{branding.sidebarColor}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600">Texto Menu</p>
+                  <div
+                    className="h-12 rounded-lg shadow-md flex items-center justify-center text-sm font-bold"
+                    style={{
+                      backgroundColor: branding.sidebarColor,
+                      color: branding.sidebarTextColor,
+                    }}
+                  >
+                    Abc
+                  </div>
+                  <p className="text-xs text-gray-500 font-mono">{branding.sidebarTextColor}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Terceira Linha: Estilos de Interface */}
         <Card className="border-2 border-gray-200">
           <CardHeader>
             <CardTitle>Estilos de Interface</CardTitle>
@@ -360,7 +424,8 @@ export default function BrandingAdmin() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Inter">Inter (Padrão)</SelectItem>
+                  <SelectItem value="Sansation">Sansation (Padrão)</SelectItem>
+                  <SelectItem value="Inter">Inter</SelectItem>
                   <SelectItem value="Roboto">Roboto</SelectItem>
                   <SelectItem value="Open Sans">Open Sans</SelectItem>
                   <SelectItem value="Poppins">Poppins</SelectItem>
@@ -368,78 +433,122 @@ export default function BrandingAdmin() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Preview dos botões */}
+            <div className="space-y-2">
+              <Label>Preview do Estilo</Label>
+              <div className="flex gap-2 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <Button
+                  variant="default"
+                  className={
+                    branding.buttonStyle === "pill"
+                      ? "rounded-full"
+                      : branding.buttonStyle === "square"
+                      ? "rounded-none"
+                      : "rounded-md"
+                  }
+                  style={{
+                    backgroundColor: branding.primaryColor,
+                    fontFamily: branding.fontFamily,
+                  }}
+                >
+                  Botão Primário
+                </Button>
+                <Button
+                  variant="outline"
+                  className={
+                    branding.buttonStyle === "pill"
+                      ? "rounded-full"
+                      : branding.buttonStyle === "square"
+                      ? "rounded-none"
+                      : "rounded-md"
+                  }
+                  style={{
+                    borderColor: branding.primaryColor,
+                    color: branding.primaryColor,
+                    fontFamily: branding.fontFamily,
+                  }}
+                >
+                  Botão Secundário
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* CSS Customizado */}
-        <Card className="border-2 border-gray-200">
+        {/* Quarta Linha: Preview do Menu Simulado */}
+        <Card className="border-2 border-[#03BBAF]/20">
           <CardHeader>
-            <CardTitle>CSS Customizado (Avançado)</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-[#03BBAF]" />
+              Preview do Menu
+            </CardTitle>
             <CardDescription>
-              Adicione CSS personalizado para customizações avançadas
+              Visualização do menu lateral com os estilos aplicados
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Textarea
-              placeholder=".custom-button { border-radius: 20px; }"
-              value={branding.customCss || ""}
-              onChange={(e) => setBranding({ ...branding, customCss: e.target.value })}
-              rows={6}
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              ⚠️ Cuidado: CSS inválido pode quebrar a interface
-            </p>
+            <div className="flex justify-center p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <div 
+                className="w-64 rounded-lg shadow-lg overflow-hidden"
+                style={{ 
+                  backgroundColor: branding.sidebarColor,
+                  fontFamily: branding.fontFamily 
+                }}
+              >
+                <div className="p-4 border-b" style={{ borderColor: `${branding.sidebarTextColor}20` }}>
+                  <div className="text-center text-base font-bold" style={{ color: branding.primaryColor }}>
+                    {branding.displayName || "EmploYEAH!"}
+                  </div>
+                </div>
+                <div className="p-2 space-y-1">
+                  <div 
+                    className={`px-3 py-2 flex items-center gap-2 ${
+                      branding.buttonStyle === "pill" ? "rounded-r-full" :
+                      branding.buttonStyle === "square" ? "rounded-none" :
+                      "rounded-r-md"
+                    }`}
+                    style={{ 
+                      backgroundColor: `${branding.primaryColor}30`,
+                      color: branding.sidebarTextColor,
+                      borderLeft: `4px solid ${branding.primaryColor}`
+                    }}
+                  >
+                    <span className="text-sm font-medium">📊 Item Ativo</span>
+                  </div>
+                  <div 
+                    className="px-3 py-2 flex items-center gap-2 text-sm"
+                    style={{ 
+                      color: branding.sidebarTextColor,
+                      borderLeft: '4px solid transparent'
+                    }}
+                  >
+                    <span>🏆 Item Inativo</span>
+                  </div>
+                  <div 
+                    className="px-3 py-2 flex items-center gap-2 text-sm"
+                    style={{ 
+                      color: branding.sidebarTextColor,
+                      borderLeft: '4px solid transparent'
+                    }}
+                  >
+                    <span>🤝 Item Inativo</span>
+                  </div>
+                  <div 
+                    className="px-3 py-2 flex items-center gap-2 text-sm"
+                    style={{ 
+                      color: branding.sidebarTextColor,
+                      borderLeft: '4px solid transparent'
+                    }}
+                  >
+                    <span>🔔 Item Inativo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Preview */}
-      <Card className="border-2 border-[#03BBAF]/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="w-5 h-5 text-[#03BBAF]" />
-            Preview das Cores
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Primária</p>
-              <div
-                className="h-20 rounded-lg shadow-lg"
-                style={{ backgroundColor: branding.primaryColor }}
-              ></div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Secundária</p>
-              <div
-                className="h-20 rounded-lg shadow-lg"
-                style={{ backgroundColor: branding.secondaryColor }}
-              ></div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Destaque</p>
-              <div
-                className="h-20 rounded-lg shadow-lg"
-                style={{ backgroundColor: branding.accentColor }}
-              ></div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Menu</p>
-              <div
-                className="h-20 rounded-lg shadow-lg flex items-center justify-center text-sm font-bold"
-                style={{
-                  backgroundColor: branding.sidebarColor,
-                  color: branding.sidebarTextColor,
-                }}
-              >
-                Texto
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

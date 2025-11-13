@@ -21,6 +21,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     password: z.string().min(6).optional(),
     mustChangePassword: z.boolean().optional(),
     points: z.number().int().min(0).optional(),
+    username: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_]+$/).optional().or(z.literal("")),
+    profilePicture: z.string().url().optional().or(z.literal("")),
+    bio: z.string().max(200).optional().or(z.literal("")),
   });
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -60,6 +63,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
     }
   }
+
+  // Validar se username já existe (se estiver sendo alterado)
+  if (data.username) {
+    const existingUser = await prisma.user.findUnique({ where: { username: data.username } });
+    if (existingUser && existingUser.id !== Number(id)) {
+      return NextResponse.json({ error: 'Username já está em uso.' }, { status: 400 });
+    }
+  }
+
+  // Converter strings vazias para null
+  if (data.username === "") data.username = null;
+  if (data.profilePicture === "") data.profilePicture = null;
+  if (data.bio === "") data.bio = null;
+
   const updated = await prisma.user.update({ where: { id: Number(id) }, data });
   return NextResponse.json(updated);
 }
