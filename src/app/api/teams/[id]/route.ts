@@ -33,7 +33,7 @@ export async function GET(
       where: { id: teamId },
       include: {
         company: { select: { id: true, name: true } },
-        supervisor: { select: { id: true, name: true, email: true } },
+        supervisors: { select: { id: true, name: true, email: true, role: true } },
         members: { select: { id: true, name: true, email: true, role: true } },
       },
     });
@@ -50,7 +50,8 @@ export async function GET(
         return NextResponse.json({ error: "Sem permissão para ver este time" }, { status: 403 });
       }
     } else if (user.role === "SUPERVISOR") {
-      if (team.supervisorId !== user.id) {
+      const isSupervisor = team.supervisors?.some(s => s.id === user.id);
+      if (!isSupervisor) {
         return NextResponse.json({ error: "Sem permissão para ver este time" }, { status: 403 });
       }
     } else {
@@ -111,57 +112,86 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { name, description, supervisorId } = body;
+    const { name, description, supervisorIds } = body;
 
-    // Verificar se o novo supervisor existe e pertence à empresa
-    if (supervisorId !== undefined && supervisorId !== existingTeam.supervisorId) {
-      if (supervisorId !== null) {
-        const supervisor = await prisma.user.findUnique({
-          where: { id: supervisorId },
-        });
+    let updateData: any = {
+      ...(name && { name }),
+      ...(description !== undefined && { description }),
+    };
 
-        if (!supervisor || supervisor.companyId !== existingTeam.companyId) {
-          return NextResponse.json({ error: "Supervisor inválido ou não pertence à empresa" }, { status: 400 });
-        }
-
-        // Verificar se o supervisor já gerencia outro time
-        const otherTeam = await prisma.team.findFirst({
-          where: { 
-            supervisorId,
-            id: { not: teamId }
+    // Atualizar supervisores se fornecido
+    if (supervisorIds !== undefined) {
+      // Verificar se os supervisores existem e pertencem à empresa
+      if (supervisorIds.length > 0) {
+        const supervisors = await prisma.user.findMany({
+          where: {
+            id: { in: supervisorIds },
+            companyId: existingTeam.companyId,
           },
         });
 
-        if (otherTeam) {
-          return NextResponse.json({ error: "Este supervisor já gerencia outro time" }, { status: 400 });
+        if (supervisors.length !== supervisorIds.length) {
+          return NextResponse.json({ error: "Um ou mais supervisores são inválidos" }, { status: 400 });
         }
 
-        // Atualizar role do novo supervisor
-        await prisma.user.update({
-          where: { id: supervisorId },
+        // Atualizar role dos novos supervisores
+        await prisma.user.updateMany({
+          where: { id: { in: supervisorIds } },
           data: { role: "SUPERVISOR" },
         });
       }
 
-      // Se estiver removendo supervisor, reverter role do anterior
-      if (existingTeam.supervisorId && supervisorId === null) {
-        await prisma.user.update({
-          where: { id: existingTeam.supervisorId },
-          data: { role: "COLLABORATOR" },
+      // Buscar supervisores atuais
+      const currentTeam = await prisma.team.findUnique({
+        where: { id: teamId },
+        include: { supervisors: true },
+      });
+
+      const currentSupervisorIds = currentTeam?.supervisors.map(s => s.id) || [];
+      const removedSupervisorIds = currentSupervisorIds.filter(id => !supervisorIds.includes(id));
+
+      // Reverter role dos supervisores removidos (se não supervisionam outros times)
+      for (const supervisorId of removedSupervisorIds) {
+        const otherTeams = await prisma.team.count({
+          where: {
+            id: { not: teamId },
+            supervisors: { some: { id: supervisorId } },
+          },
         });
+
+        if (otherTeams === 0) {
+          await prisma.user.update({
+            where: { id: supervisorId },
+            data: { role: "COLLABORATOR" },
+          });
+        }
       }
+
+      updateData.supervisors = {
+        set: supervisorIds.map((id: number) => ({ id })),
+      };
+
+      // Auto-adicionar supervisores aos membros
+      const currentMemberIds = currentTeam?.members.map(m => m.id) || [];
+      const newMemberIds = [...new Set([...currentMemberIds, ...supervisorIds])];
+      
+      updateData.members = {
+        set: newMemberIds.map((id: number) => ({ id })),
+      };
+
+      // Atualizar teamId dos supervisores
+      await prisma.user.updateMany({
+        where: { id: { in: supervisorIds } },
+        data: { teamId },
+      });
     }
 
     const team = await prisma.team.update({
       where: { id: teamId },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-        ...(supervisorId !== undefined && { supervisorId }),
-      },
+      data: updateData,
       include: {
         company: { select: { id: true, name: true } },
-        supervisor: { select: { id: true, name: true, email: true } },
+        supervisors: { select: { id: true, name: true, email: true, role: true } },
         members: { select: { id: true, name: true, email: true, role: true } },
       },
     });
@@ -225,12 +255,29 @@ export async function DELETE(
       });
     }
 
-    // Reverter role do supervisor
-    if (team.supervisorId) {
-      await prisma.user.update({
-        where: { id: team.supervisorId },
-        data: { role: "COLLABORATOR" },
-      });
+    // Buscar supervisores do time
+    const teamWithSupervisors = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { supervisors: true },
+    });
+
+    // Reverter role dos supervisores (se não supervisionam outros times)
+    if (teamWithSupervisors?.supervisors) {
+      for (const supervisor of teamWithSupervisors.supervisors) {
+        const otherTeams = await prisma.team.count({
+          where: {
+            id: { not: teamId },
+            supervisors: { some: { id: supervisor.id } },
+          },
+        });
+
+        if (otherTeams === 0) {
+          await prisma.user.update({
+            where: { id: supervisor.id },
+            data: { role: "COLLABORATOR" },
+          });
+        }
+      }
     }
 
     await prisma.team.delete({

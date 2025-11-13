@@ -62,10 +62,9 @@ export interface Team {
   name: string;
   description?: string;
   companyId: number;
-  supervisorId?: number;
   createdAt: string;
   updatedAt: string;
-  supervisor?: User;
+  supervisors?: User[];
   members?: User[];
   company?: Company;
 }
