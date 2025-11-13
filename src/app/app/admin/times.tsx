@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users as UsersIcon, UserPlus, UserMinus } from "lucide-react";
 import { Team, User } from "@/types/models";
+import ReactSelect from "react-select";
 
 interface Company {
   id: number;
@@ -29,12 +30,13 @@ export default function TeamsManagement() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [searchMember, setSearchMember] = useState("");
   
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     companyId: "",
-    supervisorId: "",
+    supervisorIds: [] as number[],
   });
 
   useEffect(() => {
@@ -143,14 +145,14 @@ export default function TeamsManagement() {
           name: formData.name,
           description: formData.description,
           companyId,
-          supervisorId: formData.supervisorId ? parseInt(formData.supervisorId) : null,
+          supervisorIds: formData.supervisorIds,
         }),
       });
 
       if (res.ok) {
         fetchTeams();
         setIsCreateOpen(false);
-        setFormData({ name: "", description: "", companyId: "", supervisorId: "" });
+        setFormData({ name: "", description: "", companyId: "", supervisorIds: [] });
       } else {
         const error = await res.json();
         alert(error.error || "Erro ao criar time");
@@ -178,7 +180,7 @@ export default function TeamsManagement() {
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
-          supervisorId: formData.supervisorId ? parseInt(formData.supervisorId) : null,
+          supervisorIds: formData.supervisorIds,
         }),
       });
 
@@ -186,7 +188,7 @@ export default function TeamsManagement() {
         fetchTeams();
         setIsEditOpen(false);
         setSelectedTeam(null);
-        setFormData({ name: "", description: "", companyId: "", supervisorId: "" });
+        setFormData({ name: "", description: "", companyId: "", supervisorIds: [] });
       } else {
         const error = await res.json();
         alert(error.error || "Erro ao atualizar time");
@@ -281,7 +283,7 @@ export default function TeamsManagement() {
       name: team.name,
       description: team.description || "",
       companyId: team.companyId.toString(),
-      supervisorId: team.supervisorId?.toString() || "",
+      supervisorIds: team.supervisors?.map(s => s.id) || [],
     });
     fetchUsers(team.companyId);
     setIsEditOpen(true);
@@ -289,12 +291,13 @@ export default function TeamsManagement() {
 
   const openMembersDialog = (team: Team) => {
     setSelectedTeam(team);
+    setSearchMember("");
     fetchUsers(team.companyId);
     setIsMembersOpen(true);
   };
 
   const openCreateDialog = () => {
-    setFormData({ name: "", description: "", companyId: "", supervisorId: "" });
+    setFormData({ name: "", description: "", companyId: "", supervisorIds: [] });
     if (userRole === "COMPANY_ADMIN" && userCompanyId) {
       fetchUsers(userCompanyId);
     }
@@ -337,7 +340,7 @@ export default function TeamsManagement() {
                   <Select
                     value={formData.companyId}
                     onValueChange={(value) => {
-                      setFormData({ ...formData, companyId: value, supervisorId: "" });
+                      setFormData({ ...formData, companyId: value, supervisorIds: [] });
                       fetchUsers(parseInt(value));
                     }}
                     required
@@ -374,23 +377,35 @@ export default function TeamsManagement() {
                 />
               </div>
               <div>
-                <Label htmlFor="supervisor">Supervisor (Opcional)</Label>
-                <Select
-                  value={formData.supervisorId}
-                  onValueChange={(value) => setFormData({ ...formData, supervisorId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um supervisor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Sem supervisor</SelectItem>
-                    {users.filter(u => u.role === "COLLABORATOR" || u.role === "SUPERVISOR").map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.name} ({user.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="supervisors">Supervisores (Opcional)</Label>
+                <ReactSelect
+                  isMulti
+                  id="supervisors"
+                  value={users
+                    .filter(u => formData.supervisorIds.includes(u.id))
+                    .map(u => ({ value: u.id, label: `${u.name} (${u.email})` }))}
+                  onChange={(selected) => {
+                    setFormData({ 
+                      ...formData, 
+                      supervisorIds: selected ? selected.map((s: any) => s.value) : [] 
+                    });
+                  }}
+                  options={users
+                    .filter(u => u.role === "COLLABORATOR" || u.role === "SUPERVISOR")
+                    .map(u => ({ value: u.id, label: `${u.name} (${u.email})` }))}
+                  placeholder="Selecione supervisor(es)"
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: '36px',
+                      borderColor: 'hsl(var(--input))',
+                      '&:hover': { borderColor: 'hsl(var(--input))' },
+                    }),
+                    menu: (base) => ({ ...base, zIndex: 9999 }),
+                  }}
+                />
               </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -426,6 +441,13 @@ export default function TeamsManagement() {
                   </div>
                   <div className="flex gap-2">
                     <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => window.location.href = `/app/admin/times/${team.id}`}
+                    >
+                      Ver Detalhes
+                    </Button>
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => openMembersDialog(team)}
@@ -453,9 +475,15 @@ export default function TeamsManagement() {
               <CardContent>
                 <div className="space-y-2">
                   <div>
-                    <span className="font-semibold">Supervisor: </span>
-                    {team.supervisor ? (
-                      <span>{team.supervisor.name} ({team.supervisor.email})</span>
+                    <span className="font-semibold">Supervisor{team.supervisors && team.supervisors.length > 1 ? 'es' : ''}: </span>
+                    {team.supervisors && team.supervisors.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {team.supervisors.map((supervisor) => (
+                          <Badge key={supervisor.id} variant="secondary">
+                            {supervisor.name}
+                          </Badge>
+                        ))}
+                      </div>
                     ) : (
                       <span className="text-gray-500">Sem supervisor</span>
                     )}
@@ -496,23 +524,35 @@ export default function TeamsManagement() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-supervisor">Supervisor</Label>
-              <Select
-                value={formData.supervisorId}
-                onValueChange={(value) => setFormData({ ...formData, supervisorId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um supervisor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Sem supervisor</SelectItem>
-                  {users.filter(u => u.role === "COLLABORATOR" || u.role === "SUPERVISOR").map((user) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      {user.name} ({user.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="edit-supervisors">Supervisores</Label>
+              <ReactSelect
+                isMulti
+                id="edit-supervisors"
+                value={users
+                  .filter(u => formData.supervisorIds.includes(u.id))
+                  .map(u => ({ value: u.id, label: `${u.name} (${u.email})` }))}
+                onChange={(selected) => {
+                  setFormData({ 
+                    ...formData, 
+                    supervisorIds: selected ? selected.map((s: any) => s.value) : [] 
+                  });
+                }}
+                options={users
+                  .filter(u => u.role === "COLLABORATOR" || u.role === "SUPERVISOR")
+                  .map(u => ({ value: u.id, label: `${u.name} (${u.email})` }))}
+                placeholder="Selecione supervisor(es)"
+                className="react-select-container"
+                classNamePrefix="react-select"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: '36px',
+                    borderColor: 'hsl(var(--input))',
+                    '&:hover': { borderColor: 'hsl(var(--input))' },
+                  }),
+                  menu: (base) => ({ ...base, zIndex: 9999 }),
+                }}
+              />
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
@@ -526,90 +566,140 @@ export default function TeamsManagement() {
 
       {/* Dialog de Membros */}
       <Dialog open={isMembersOpen} onOpenChange={setIsMembersOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Gerenciar Membros - {selectedTeam?.name}</DialogTitle>
             <DialogDescription>
               Adicione ou remova membros do time
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          
+          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+            {/* Membros Atuais */}
             <div>
-              <h3 className="font-semibold mb-2">Membros Atuais</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-lg">Membros Atuais</h3>
+                <Badge variant="secondary">{selectedTeam?.members?.length || 0} membros</Badge>
+              </div>
               {selectedTeam?.members && selectedTeam.members.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead className="text-right">Ação</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedTeam.members.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell>{member.name}</TableCell>
-                        <TableCell>{member.email}</TableCell>
-                        <TableCell>
-                          <Badge>{member.role}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRemoveMember(member.id)}
-                          >
-                            <UserMinus className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="max-h-60 overflow-y-auto">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-background z-10">
+                        <TableRow>
+                          <TableHead className="w-[30%]">Nome</TableHead>
+                          <TableHead className="w-[35%]">Email</TableHead>
+                          <TableHead className="w-[20%]">Role</TableHead>
+                          <TableHead className="w-[15%] text-right">Ação</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedTeam.members.map((member) => (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium">{member.name}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground truncate">{member.email}</TableCell>
+                            <TableCell>
+                              <Badge variant={member.role === 'SUPERVISOR' ? 'default' : 'secondary'}>
+                                {member.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveMember(member.id)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <UserMinus className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
               ) : (
-                <p className="text-gray-500 text-sm">Nenhum membro no time ainda.</p>
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-center text-muted-foreground text-sm">Nenhum membro no time ainda.</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
 
+            {/* Adicionar Membros */}
             <div>
-              <h3 className="font-semibold mb-2">Adicionar Membro</h3>
-              {users.filter(u => !u.teamId && u.companyId === selectedTeam?.companyId).length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead className="text-right">Ação</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users
-                      .filter(u => !u.teamId && u.companyId === selectedTeam?.companyId)
-                      .map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell>{user.name}</TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{user.role}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAddMember(user.id)}
-                            >
-                              <UserPlus className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-gray-500 text-sm">Todos os usuários já fazem parte de um time.</p>
-              )}
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-lg">Adicionar Membros</h3>
+              </div>
+              
+              {/* Campo de Busca */}
+              <div className="mb-3">
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  value={searchMember}
+                  onChange={(e) => setSearchMember(e.target.value)}
+                  className="max-w-md"
+                />
+              </div>
+
+              {(() => {
+                const availableUsers = users.filter(u => 
+                  !u.teamId && 
+                  u.companyId === selectedTeam?.companyId &&
+                  u.role !== 'SUPER_ADMIN' &&
+                  (searchMember === '' || 
+                    u.name.toLowerCase().includes(searchMember.toLowerCase()) ||
+                    u.email.toLowerCase().includes(searchMember.toLowerCase()))
+                );
+
+                return availableUsers.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="max-h-80 overflow-y-auto">
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-background z-10">
+                          <TableRow>
+                            <TableHead className="w-[30%]">Nome</TableHead>
+                            <TableHead className="w-[35%]">Email</TableHead>
+                            <TableHead className="w-[20%]">Role</TableHead>
+                            <TableHead className="w-[15%] text-right">Ação</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {availableUsers.map((user) => (
+                            <TableRow key={user.id}>
+                              <TableCell className="font-medium">{user.name}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground truncate">{user.email}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{user.role}</Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleAddMember(user.id)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <UserPlus className="h-4 w-4 text-green-500" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <p className="text-center text-muted-foreground text-sm">
+                        {searchMember ? 'Nenhum usuário encontrado com esse termo.' : 'Todos os usuários elegíveis já fazem parte de um time.'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
             </div>
           </div>
         </DialogContent>

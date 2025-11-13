@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       teams = await prisma.team.findMany({
         include: {
           company: { select: { id: true, name: true } },
-          supervisor: { select: { id: true, name: true, email: true } },
+          supervisors: { select: { id: true, name: true, email: true, role: true } },
           members: { select: { id: true, name: true, email: true, role: true } },
         },
         orderBy: { createdAt: "desc" },
@@ -49,17 +49,17 @@ export async function GET(req: NextRequest) {
         where: { companyId: user.companyId },
         include: {
           company: { select: { id: true, name: true } },
-          supervisor: { select: { id: true, name: true, email: true } },
+          supervisors: { select: { id: true, name: true, email: true, role: true } },
           members: { select: { id: true, name: true, email: true, role: true } },
         },
         orderBy: { createdAt: "desc" },
       });
     } else if (user.role === "SUPERVISOR") {
       teams = await prisma.team.findMany({
-        where: { supervisorId: user.id },
+        where: { supervisors: { some: { id: user.id } } },
         include: {
           company: { select: { id: true, name: true } },
-          supervisor: { select: { id: true, name: true, email: true } },
+          supervisors: { select: { id: true, name: true, email: true, role: true } },
           members: { select: { id: true, name: true, email: true, role: true } },
         },
       });
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
         where: { id: user.teamId },
         include: {
           company: { select: { id: true, name: true } },
-          supervisor: { select: { id: true, name: true, email: true } },
+          supervisors: { select: { id: true, name: true, email: true, role: true } },
           members: { select: { id: true, name: true, email: true, role: true } },
         },
       });
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, description, companyId, supervisorId } = body;
+    const { name, description, companyId, supervisorIds = [] } = body;
 
     if (!name || !companyId) {
       return NextResponse.json({ error: "Nome e companyId são obrigatórios" }, { status: 400 });
@@ -126,45 +126,55 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Você só pode criar times na sua empresa" }, { status: 403 });
     }
 
-    // Verificar se o supervisor existe e pertence à empresa
-    if (supervisorId) {
-      const supervisor = await prisma.user.findUnique({
-        where: { id: supervisorId },
+    // Verificar se os supervisores existem e pertencem à empresa
+    if (supervisorIds.length > 0) {
+      const supervisors = await prisma.user.findMany({
+        where: {
+          id: { in: supervisorIds },
+          companyId,
+        },
       });
 
-      if (!supervisor || supervisor.companyId !== companyId) {
-        return NextResponse.json({ error: "Supervisor inválido ou não pertence à empresa" }, { status: 400 });
+      if (supervisors.length !== supervisorIds.length) {
+        return NextResponse.json({ error: "Um ou mais supervisores são inválidos ou não pertencem à empresa" }, { status: 400 });
       }
 
-      // Verificar se o supervisor já gerencia outro time
-      const existingTeam = await prisma.team.findFirst({
-        where: { supervisorId },
-      });
-
-      if (existingTeam) {
-        return NextResponse.json({ error: "Este supervisor já gerencia outro time" }, { status: 400 });
-      }
-
-      // Atualizar role do usuário para SUPERVISOR
-      await prisma.user.update({
-        where: { id: supervisorId },
+      // Atualizar role dos usuários para SUPERVISOR
+      await prisma.user.updateMany({
+        where: { id: { in: supervisorIds } },
         data: { role: "SUPERVISOR" },
       });
     }
 
+    // Criar time e conectar supervisores e membros automaticamente
+    const allMemberIds = [...supervisorIds]; // Supervisores são automaticamente membros
+    
     const team = await prisma.team.create({
       data: {
         name,
         description,
         companyId,
-        supervisorId,
+        supervisors: supervisorIds.length > 0 ? {
+          connect: supervisorIds.map((id: number) => ({ id })),
+        } : undefined,
+        members: allMemberIds.length > 0 ? {
+          connect: allMemberIds.map((id: number) => ({ id })),
+        } : undefined,
       },
       include: {
         company: { select: { id: true, name: true } },
-        supervisor: { select: { id: true, name: true, email: true } },
+        supervisors: { select: { id: true, name: true, email: true, role: true } },
         members: { select: { id: true, name: true, email: true, role: true } },
       },
     });
+
+    // Atualizar teamId dos supervisores
+    if (supervisorIds.length > 0) {
+      await prisma.user.updateMany({
+        where: { id: { in: supervisorIds } },
+        data: { teamId: team.id },
+      });
+    }
 
     return NextResponse.json({ team }, { status: 201 });
   } catch (error) {

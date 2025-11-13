@@ -44,7 +44,7 @@ model User {
   surveyResponses    SurveyResponse[]
   company            Company?           @relation(fields: [companyId], references: [id])
   team               Team?              @relation("TeamMembers", fields: [teamId], references: [id])
-  supervisedTeams    Team[]             @relation("TeamSupervisor")
+  supervisingTeams   Team[]             @relation("TeamSupervisors")
 
   @@index([companyId])
   @@index([teamId])
@@ -124,19 +124,17 @@ enum UserRole {
 }
 
 model Team {
-  id           Int       @id @default(autoincrement())
-  name         String
-  description  String?   @db.VarChar(500)
-  companyId    Int
-  supervisorId Int?      @unique
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  supervisor   User?     @relation("TeamSupervisor", fields: [supervisorId], references: [id])
-  members      User[]    @relation("TeamMembers")
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?   @db.VarChar(500)
+  companyId   Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  members     User[]    @relation("TeamMembers")
+  supervisors User[]    @relation("TeamSupervisors")
 
   @@index([companyId])
-  @@index([supervisorId])
 }
 
 // White-label branding settings for each company
