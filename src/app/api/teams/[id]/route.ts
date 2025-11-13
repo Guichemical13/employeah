@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // GET /api/teams/[id] - Buscar time específico
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = await verifyToken(req);
@@ -28,7 +28,7 @@ export async function GET(
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
     }
 
-    const teamId = parseInt(params.id);
+    const teamId = parseInt((await params).id);
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
@@ -70,7 +70,7 @@ export async function GET(
 // PUT /api/teams/[id] - Atualizar time
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = await verifyToken(req);
@@ -96,7 +96,7 @@ export async function PUT(
       return NextResponse.json({ error: "Sem permissão para editar times" }, { status: 403 });
     }
 
-    const teamId = parseInt(params.id);
+    const teamId = parseInt((await params).id);
     const existingTeam = await prisma.team.findUnique({
       where: { id: teamId },
     });
@@ -176,7 +176,7 @@ export async function PUT(
 // DELETE /api/teams/[id] - Deletar time
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const decoded = await verifyToken(req);
@@ -202,7 +202,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Sem permissão para deletar times" }, { status: 403 });
     }
 
-    const teamId = parseInt(params.id);
+    const teamId = parseInt((await params).id);
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: { members: true },
