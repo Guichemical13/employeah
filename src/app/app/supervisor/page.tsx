@@ -6,6 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, Building2, BarChart3 } from "lucide-react";
 import TeamManagementTab from "@/components/TeamManagementTab";
 import ForcePasswordChangeModal from "@/components/ForcePasswordChangeModal";
+import RewardsTab from "../rewards";
+import ComplimentsTab from "../compliments";
+import NotificationsTab from "../notifications";
+import SettingsTab from "../settings";
 
 interface Team {
   id: number;
@@ -125,63 +129,76 @@ export default function SupervisorPanel() {
       
       <div className="lg:ml-64 pt-16 lg:pt-0">
         <div className="p-4 lg:p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Painel de Supervisão</h1>
-            <p className="text-gray-600 mt-1">Gerencie seus times e visualize analytics</p>
-          </div>
-
-          {teams.length === 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Nenhum Time Atribuído</CardTitle>
-                <CardDescription>
-                  Você ainda não está supervisionando nenhum time. Entre em contato com o administrador.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ) : (
+          {tab === "dashboard" && (
             <>
-              {/* Seletor de Times */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {teams.map((team) => (
-                  <Card
-                    key={team.id}
-                    className={`cursor-pointer transition-all hover:shadow-lg ${
-                      selectedTeam === team.id ? "ring-2 ring-blue-500" : ""
-                    }`}
-                    onClick={() => setSelectedTeam(team.id)}
-                  >
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        {team.name}
-                      </CardTitle>
-                      {team.description && (
-                        <CardDescription>{team.description}</CardDescription>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <Building2 className="w-4 h-4" />
-                          <span>{team.company.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <Users className="w-4 h-4" />
-                          <span>{team.members.length} membros</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900">Painel de Supervisão</h1>
+                <p className="text-gray-600 mt-1">Gerencie seus times e visualize analytics</p>
               </div>
 
-              {/* Detalhes do Time Selecionado */}
-              {selectedTeam && (
-                <TeamManagementTab teamId={selectedTeam} />
+              {teams.length === 0 ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Nenhum Time Atribuído</CardTitle>
+                    <CardDescription>
+                      Você ainda não está supervisionando nenhum time. Entre em contato com o administrador.
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ) : (
+                <>
+                  {/* Seletor de Times */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    {teams.map((team) => (
+                      <Card
+                        key={team.id}
+                        className={`cursor-pointer transition-all hover:shadow-lg ${
+                          selectedTeam === team.id ? "ring-2 ring-blue-500" : ""
+                        }`}
+                        onClick={() => setSelectedTeam(team.id)}
+                      >
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Users className="w-5 h-5" />
+                            {team.name}
+                          </CardTitle>
+                          {team.description && (
+                            <CardDescription>{team.description}</CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Building2 className="w-4 h-4" />
+                              <span>{team.company.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Users className="w-4 h-4" />
+                              <span>{team.members.length} membros</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Detalhes do Time Selecionado */}
+                  {selectedTeam && (
+                    <TeamManagementTab teamId={selectedTeam} />
+                  )}
+                </>
               )}
             </>
           )}
+          
+          {tab === "analytics" && selectedTeam && (
+            <TeamManagementTab teamId={selectedTeam} />
+          )}
+          
+          {tab === "rewards" && <RewardsTab />}
+          {tab === "elogios" && <ComplimentsTab />}
+          {tab === "notifications" && <NotificationsTab isAdminView={false} currentUser={user} />}
+          {tab === "ajustes" && <SettingsTab />}
         </div>
       </div>
 

@@ -358,47 +358,111 @@ export default function SidebarMenu({
             </>
           ) : (
             <>
-              {/* MENU */}
-              <div className="mb-0.5">
-                <div className="px-2 py-0.5">
-                  <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
-                    Menu
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleTabChange("central")}
-                  className={getButtonClass(tab === "central")}
-                  style={getButtonStyle(tab === "central")}
-                >
-                  <LayoutDashboard size={16} /> <span>Central</span>
-                </button>
-                <button
-                  onClick={() => handleTabChange("rewards")}
-                  className={getButtonClass(tab === "rewards")}
-                  style={getButtonStyle(tab === "rewards")}
-                >
-                  <Trophy size={16} /> <span>Recompensas</span>
-                </button>
-                <button
-                  onClick={() => handleTabChange("elogios")}
-                  className={getButtonClass(tab === "elogios")}
-                  style={getButtonStyle(tab === "elogios")}
-                >
-                  <Handshake size={16} /> <span>Elogios</span>
-                </button>
-                <button
-                  onClick={() => handleTabChange("notifications")}
-                  className={getButtonClass(tab === "notifications") + " relative"}
-                  style={getButtonStyle(tab === "notifications")}
-                >
-                  <Bell size={16} /> <span>Notificações</span>
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              </div>
+              {/* MENU para SUPERVISOR */}
+              {userRole === "SUPERVISOR" ? (
+                <>
+                  <div className="mb-0.5">
+                    <div className="px-2 py-0.5">
+                      <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                        Supervisão
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleTabChange("dashboard")}
+                      className={getButtonClass(tab === "dashboard")}
+                      style={getButtonStyle(tab === "dashboard")}
+                    >
+                      <LayoutDashboard size={16} /> <span>Painel</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange("analytics")}
+                      className={getButtonClass(tab === "analytics")}
+                      style={getButtonStyle(tab === "analytics")}
+                    >
+                      <BarChart3 size={16} /> <span>Analytics</span>
+                    </button>
+                  </div>
+
+                  {/* PESSOAL */}
+                  <div className="mb-0.5">
+                    <div className="px-2 py-0.5">
+                      <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                        Pessoal
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleTabChange("elogios")}
+                      className={getButtonClass(tab === "elogios")}
+                      style={getButtonStyle(tab === "elogios")}
+                    >
+                      <Handshake size={16} /> <span>Elogios</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange("rewards")}
+                      className={getButtonClass(tab === "rewards")}
+                      style={getButtonStyle(tab === "rewards")}
+                    >
+                      <Trophy size={16} /> <span>Recompensas</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange("notifications")}
+                      className={getButtonClass(tab === "notifications") + " relative"}
+                      style={getButtonStyle(tab === "notifications")}
+                    >
+                      <Bell size={16} /> <span>Notificações</span>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                /* MENU para COLABORADOR */
+                <>
+                  <div className="mb-0.5">
+                    <div className="px-2 py-0.5">
+                      <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                        Menu
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleTabChange("central")}
+                      className={getButtonClass(tab === "central")}
+                      style={getButtonStyle(tab === "central")}
+                    >
+                      <LayoutDashboard size={16} /> <span>Central</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange("rewards")}
+                      className={getButtonClass(tab === "rewards")}
+                      style={getButtonStyle(tab === "rewards")}
+                    >
+                      <Trophy size={16} /> <span>Recompensas</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange("elogios")}
+                      className={getButtonClass(tab === "elogios")}
+                      style={getButtonStyle(tab === "elogios")}
+                    >
+                      <Handshake size={16} /> <span>Elogios</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange("notifications")}
+                      className={getButtonClass(tab === "notifications") + " relative"}
+                      style={getButtonStyle(tab === "notifications")}
+                    >
+                      <Bell size={16} /> <span>Notificações</span>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
