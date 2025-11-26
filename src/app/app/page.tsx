@@ -35,6 +35,16 @@ export default function Dashboard() {
           router.push("/login");
         } else {
           const data = await res.json();
+          
+          // Redireciona para a rota apropriada baseada na role
+          if (data.user.role === "SUPER_ADMIN" || data.user.role === "COMPANY_ADMIN") {
+            router.push("/app/admin");
+            return;
+          } else if (data.user.role === "SUPERVISOR") {
+            router.push("/app/supervisor");
+            return;
+          }
+          
           setUser(data.user);
           setIsAuthenticated(true);
           if (data.user.role !== "SUPER_ADMIN" && data.user.mustChangePassword) {

@@ -23,7 +23,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import PasswordValidator from "@/components/PasswordValidator";
+import UserPermissionsModal from "@/components/UserPermissionsModal";
 import type { Company, User } from "@/types/models";
+import { Settings } from "lucide-react";
 
 const userSchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
@@ -49,6 +51,8 @@ export default function UsersTab() {
   const [userRole, setUserRole] = useState<string>("");
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
+  const [permissionsModalOpen, setPermissionsModalOpen] = useState(false);
+  const [selectedUserForPermissions, setSelectedUserForPermissions] = useState<User | null>(null);
 
   const form = useForm<UserForm>({
     resolver: zodResolver(userSchema),
@@ -168,6 +172,11 @@ export default function UsersTab() {
     fetchUsers();
   }
 
+  function handleOpenPermissions(user: User) {
+    setSelectedUserForPermissions(user);
+    setPermissionsModalOpen(true);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
@@ -191,6 +200,17 @@ export default function UsersTab() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
+                  {(u.role === "SUPERVISOR" || u.role === "COLLABORATOR") && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleOpenPermissions(u)}
+                      className="flex-1 sm:flex-none"
+                    >
+                      <Settings className="w-4 h-4 mr-1" />
+                      Permissões
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={() => handleOpenEdit(u)} className="flex-1 sm:flex-none">
                     Editar
                   </Button>
@@ -305,6 +325,19 @@ export default function UsersTab() {
           </Form>
         </DialogContent>
       </Dialog>
+      
+      {selectedUserForPermissions && (
+        <UserPermissionsModal
+          open={permissionsModalOpen}
+          onClose={() => {
+            setPermissionsModalOpen(false);
+            setSelectedUserForPermissions(null);
+          }}
+          userId={selectedUserForPermissions.id}
+          userName={selectedUserForPermissions.name}
+          userRole={selectedUserForPermissions.role}
+        />
+      )}
     </div>
   );
 }

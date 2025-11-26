@@ -4,6 +4,7 @@ import { verifyToken } from '@/lib/auth';
 const protectedRoutes = [
   '/app/app',
   '/app/app/admin',
+  '/app/app/supervisor',
 ];
 
 export async function middleware(req: NextRequest) {

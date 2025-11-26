@@ -42,6 +42,7 @@ model User {
   notifications      Notification[]
   transactions       PointTransaction[]
   surveyResponses    SurveyResponse[]
+  permissions        UserPermission[]
   company            Company?           @relation(fields: [companyId], references: [id])
   team               Team?              @relation("TeamMembers", fields: [teamId], references: [id])
   supervisingTeams   Team[]             @relation("TeamSupervisors")
@@ -191,4 +192,18 @@ model SurveyResponse {
   @@index([surveyId])
   @@index([userId])
   @@index([companyId])
+}
+
+// Modelo de permissões customizáveis para supervisores
+model UserPermission {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  permission String  @db.VarChar(100) // Nome da permissão (ex: "view_users", "edit_team_members")
+  value     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permission])
+  @@index([userId])
 }

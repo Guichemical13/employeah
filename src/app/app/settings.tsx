@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -197,11 +196,9 @@ export default function SettingsTab() {
               <Button variant="outline" onClick={handleOpenPasswordChange}>Alterar Senha</Button>
             </div>
           </div>
-        ) : (
-          <div className="text-gray-400">Usuário não encontrado.</div>
-        )}
-        <Button className="mt-4 bg-red-500 hover:bg-red-700 text-white" onClick={handleLogout}>Logout</Button>
+        ) : null}
       </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

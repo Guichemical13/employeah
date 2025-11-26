@@ -37,6 +37,16 @@ export default function AdminPanel() {
                     router.push("/login");
                 } else {
                     const data = await res.json();
+                    
+                    // Redireciona para a rota apropriada baseada na role
+                    if (data.user.role === "SUPERVISOR") {
+                        router.push("/app/supervisor");
+                        return;
+                    } else if (data.user.role === "COLLABORATOR") {
+                        router.push("/app");
+                        return;
+                    }
+                    
                     setUser(data.user);
                     setIsAuthenticated(true);
                     // Define a tab padrão após saber o role

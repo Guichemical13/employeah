@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useBranding } from "@/hooks/useBranding";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useState, useEffect } from "react";
 import LogoutSurveyModal from "./LogoutSurveyModal";
 
@@ -71,6 +72,7 @@ export default function SidebarMenu({
 }: SidebarMenuProps) {
   const { unreadCount } = useNotifications();
   const { branding, loading } = useBranding();
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
   const [showSurvey, setShowSurvey] = useState(false);
   const [hasPendingSurvey, setHasPendingSurvey] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(true);
@@ -227,14 +229,14 @@ export default function SidebarMenu({
         <div className="flex flex-col gap-1 w-full">
           {showAdminTabs ? (
             <>
-              {/* PAINEL */}
-              <div className="mb-0.5">
-                <div className="px-2 py-0.5">
-                  <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
-                    Painel
-                  </span>
-                </div>
-                {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
+              {/* PAINEL - Para SUPER_ADMIN e COMPANY_ADMIN */}
+              {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
+                <div className="mb-0.5">
+                  <div className="px-2 py-0.5">
+                    <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                      Painel
+                    </span>
+                  </div>
                   <button
                     onClick={() => handleTabChange("geral")}
                     className={getButtonClass(tab === "geral")}
@@ -242,21 +244,56 @@ export default function SidebarMenu({
                   >
                     <LayoutDashboard size={16} /> <span>Geral</span>
                   </button>
-                )}
-                
-                {userRole === "SUPER_ADMIN" && (
+                  
+                  {userRole === "SUPER_ADMIN" && (
+                    <button
+                      onClick={() => handleTabChange("empresas")}
+                      className={getButtonClass(tab === "empresas")}
+                      style={getButtonStyle(tab === "empresas")}
+                    >
+                      <Building2 size={16} /> <span>Empresas</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* PAINEL - Para SUPERVISOR */}
+              {userRole === "SUPERVISOR" && (
+                <div className="mb-0.5">
+                  <div className="px-2 py-0.5">
+                    <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                      Painel
+                    </span>
+                  </div>
                   <button
-                    onClick={() => handleTabChange("empresas")}
-                    className={getButtonClass(tab === "empresas")}
-                    style={getButtonStyle(tab === "empresas")}
+                    onClick={() => handleTabChange("dashboard")}
+                    className={getButtonClass(tab === "dashboard")}
+                    style={getButtonStyle(tab === "dashboard")}
                   >
-                    <Building2 size={16} /> <span>Empresas</span>
+                    <LayoutDashboard size={16} /> <span>Painel</span>
                   </button>
-                )}
-              </div>
+                  {hasPermission('view_analytics') && (
+                    <button
+                      onClick={() => handleTabChange("analytics")}
+                      className={getButtonClass(tab === "analytics")}
+                      style={getButtonStyle(tab === "analytics")}
+                    >
+                      <BarChart3 size={16} /> <span>Analytics</span>
+                    </button>
+                  )}
+                </div>
+              )}
               
               {/* GESTÃO - Colapsável */}
-              {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
+              {(
+                hasPermission('view_users_menu') ||
+                hasPermission('insert_new_items_catalog') ||
+                hasPermission('remove_items_catalog') ||
+                hasPermission('transfer_remove_users') ||
+                hasPermission('like_compliment_sent_by_others') ||
+                userRole === "SUPER_ADMIN" ||
+                userRole === "COMPANY_ADMIN"
+              ) && (
                 <div className="mb-0.5">
                   <button
                     onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
@@ -271,56 +308,99 @@ export default function SidebarMenu({
                   
                   {isAdminMenuOpen && (
                     <div className="flex flex-col gap-0.5">
-                      <button
-                        onClick={() => handleTabChange("usuarios")}
-                        className={getButtonClass(tab === "usuarios")}
-                        style={getButtonStyle(tab === "usuarios")}
-                      >
-                        <Users size={16} /> <span>Usuários</span>
-                      </button>
-                      <button
-                        onClick={() => handleTabChange("times")}
-                        className={getButtonClass(tab === "times")}
-                        style={getButtonStyle(tab === "times")}
-                      >
-                        <Users size={16} /> <span>Times</span>
-                      </button>
-                      <button
-                        onClick={() => handleTabChange("itens")}
-                        className={getButtonClass(tab === "itens")}
-                        style={getButtonStyle(tab === "itens")}
-                      >
-                        <Trophy size={16} /> <span>Itens</span>
-                      </button>
-                      <button
-                        onClick={() => handleTabChange("categorias")}
-                        className={getButtonClass(tab === "categorias")}
-                        style={getButtonStyle(tab === "categorias")}
-                      >
-                        <LayoutDashboard size={16} /> <span>Categorias</span>
-                      </button>
-                      <button
-                        onClick={() => handleTabChange("pontos")}
-                        className={getButtonClass(tab === "pontos")}
-                        style={getButtonStyle(tab === "pontos")}
-                      >
-                        <Coins size={16} /> <span>Pontos</span>
-                      </button>
-                      <button
-                        onClick={() => handleTabChange("elogios-admin")}
-                        className={getButtonClass(tab === "elogios-admin")}
-                        style={getButtonStyle(tab === "elogios-admin")}
-                      >
-                        <Heart size={16} /> <span>Elogios</span>
-                      </button>
-                      <button
-                        onClick={() => handleTabChange("branding")}
-                        className={getButtonClass(tab === "branding")}
-                        style={getButtonStyle(tab === "branding")}
-                      >
-                        <Palette size={16} /> <span>Branding</span>
-                      </button>
+                      {hasPermission('view_users_menu') && (
+                        <button
+                          onClick={() => handleTabChange("usuarios")}
+                          className={getButtonClass(tab === "usuarios")}
+                          style={getButtonStyle(tab === "usuarios")}
+                        >
+                          <Users size={16} /> <span>Usuários</span>
+                        </button>
+                      )}
+                      {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
+                        <button
+                          onClick={() => handleTabChange("times")}
+                          className={getButtonClass(tab === "times")}
+                          style={getButtonStyle(tab === "times")}
+                        >
+                          <Users size={16} /> <span>Times</span>
+                        </button>
+                      )}
+                      {(hasPermission('insert_new_items_catalog') || hasPermission('remove_items_catalog')) && (
+                        <button
+                          onClick={() => handleTabChange("itens")}
+                          className={getButtonClass(tab === "itens")}
+                          style={getButtonStyle(tab === "itens")}
+                        >
+                          <Trophy size={16} /> <span>Itens</span>
+                        </button>
+                      )}
+                      {(hasPermission('insert_new_items_catalog') || hasPermission('remove_items_catalog')) && (
+                        <button
+                          onClick={() => handleTabChange("categorias")}
+                          className={getButtonClass(tab === "categorias")}
+                          style={getButtonStyle(tab === "categorias")}
+                        >
+                          <LayoutDashboard size={16} /> <span>Categorias</span>
+                        </button>
+                      )}
+                      {hasPermission('transfer_remove_users') && (
+                        <button
+                          onClick={() => handleTabChange("pontos")}
+                          className={getButtonClass(tab === "pontos")}
+                          style={getButtonStyle(tab === "pontos")}
+                        >
+                          <Coins size={16} /> <span>Pontos</span>
+                        </button>
+                      )}
+                      {hasPermission('like_compliment_sent_by_others') && (
+                        <button
+                          onClick={() => handleTabChange("elogios-admin")}
+                          className={getButtonClass(tab === "elogios-admin")}
+                          style={getButtonStyle(tab === "elogios-admin")}
+                        >
+                          <Heart size={16} /> <span>Elogios</span>
+                        </button>
+                      )}
+                      {(userRole === "SUPER_ADMIN" || userRole === "COMPANY_ADMIN") && (
+                        <button
+                          onClick={() => handleTabChange("branding")}
+                          className={getButtonClass(tab === "branding")}
+                          style={getButtonStyle(tab === "branding")}
+                        >
+                          <Palette size={16} /> <span>Branding</span>
+                        </button>
+                      )}
                     </div>
+                  )}
+                </div>
+              )}
+              
+              {/* PESSOAL - Para SUPERVISOR */}
+              {userRole === "SUPERVISOR" && (
+                <div className="mb-0.5">
+                  <div className="px-2 py-0.5">
+                    <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                      Pessoal
+                    </span>
+                  </div>
+                  {hasPermission('view_team_wall') && (
+                    <button
+                      onClick={() => handleTabChange("elogios")}
+                      className={getButtonClass(tab === "elogios")}
+                      style={getButtonStyle(tab === "elogios")}
+                    >
+                      <Handshake size={16} /> <span>Elogios</span>
+                    </button>
+                  )}
+                  {hasPermission('view_store') && (
+                    <button
+                      onClick={() => handleTabChange("rewards")}
+                      className={getButtonClass(tab === "rewards")}
+                      style={getButtonStyle(tab === "rewards")}
+                    >
+                      <Trophy size={16} /> <span>Recompensas</span>
+                    </button>
                   )}
                 </div>
               )}
@@ -358,47 +438,130 @@ export default function SidebarMenu({
             </>
           ) : (
             <>
-              {/* MENU */}
-              <div className="mb-0.5">
-                <div className="px-2 py-0.5">
-                  <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
-                    Menu
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleTabChange("central")}
-                  className={getButtonClass(tab === "central")}
-                  style={getButtonStyle(tab === "central")}
-                >
-                  <LayoutDashboard size={16} /> <span>Central</span>
-                </button>
-                <button
-                  onClick={() => handleTabChange("rewards")}
-                  className={getButtonClass(tab === "rewards")}
-                  style={getButtonStyle(tab === "rewards")}
-                >
-                  <Trophy size={16} /> <span>Recompensas</span>
-                </button>
-                <button
-                  onClick={() => handleTabChange("elogios")}
-                  className={getButtonClass(tab === "elogios")}
-                  style={getButtonStyle(tab === "elogios")}
-                >
-                  <Handshake size={16} /> <span>Elogios</span>
-                </button>
-                <button
-                  onClick={() => handleTabChange("notifications")}
-                  className={getButtonClass(tab === "notifications") + " relative"}
-                  style={getButtonStyle(tab === "notifications")}
-                >
-                  <Bell size={16} /> <span>Notificações</span>
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              </div>
+              {/* MENU para SUPERVISOR */}
+              {userRole === "SUPERVISOR" ? (
+                <>
+                  <div className="mb-0.5">
+                    <div className="px-2 py-0.5">
+                      <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                        Supervisão
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleTabChange("dashboard")}
+                      className={getButtonClass(tab === "dashboard")}
+                      style={getButtonStyle(tab === "dashboard")}
+                    >
+                      <LayoutDashboard size={16} /> <span>Painel</span>
+                    </button>
+                    {hasPermission('view_analytics') && (
+                      <button
+                        onClick={() => handleTabChange("analytics")}
+                        className={getButtonClass(tab === "analytics")}
+                        style={getButtonStyle(tab === "analytics")}
+                      >
+                        <BarChart3 size={16} /> <span>Analytics</span>
+                      </button>
+                    )}
+                    {hasPermission('view_users_menu') && (
+                      <button
+                        onClick={() => handleTabChange("usuarios")}
+                        className={getButtonClass(tab === "usuarios")}
+                        style={getButtonStyle(tab === "usuarios")}
+                      >
+                        <Users size={16} /> <span>Usuários</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* PESSOAL */}
+                  <div className="mb-0.5">
+                    <div className="px-2 py-0.5">
+                      <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                        Pessoal
+                      </span>
+                    </div>
+                    {hasPermission('view_team_wall') && (
+                      <button
+                        onClick={() => handleTabChange("elogios")}
+                        className={getButtonClass(tab === "elogios")}
+                        style={getButtonStyle(tab === "elogios")}
+                      >
+                        <Handshake size={16} /> <span>Elogios</span>
+                      </button>
+                    )}
+                    {hasPermission('view_store') && (
+                      <button
+                        onClick={() => handleTabChange("rewards")}
+                        className={getButtonClass(tab === "rewards")}
+                        style={getButtonStyle(tab === "rewards")}
+                      >
+                        <Trophy size={16} /> <span>Recompensas</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleTabChange("notifications")}
+                      className={getButtonClass(tab === "notifications") + " relative"}
+                      style={getButtonStyle(tab === "notifications")}
+                    >
+                      <Bell size={16} /> <span>Notificações</span>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                /* MENU para COLABORADOR */
+                <>
+                  <div className="mb-0.5">
+                    <div className="px-2 py-0.5">
+                      <span className="text-xs uppercase tracking-wide font-semibold opacity-60" style={{ color: branding?.sidebarTextColor || '#374151' }}>
+                        Menu
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleTabChange("central")}
+                      className={getButtonClass(tab === "central")}
+                      style={getButtonStyle(tab === "central")}
+                    >
+                      <LayoutDashboard size={16} /> <span>Central</span>
+                    </button>
+                    {hasPermission('view_store') && (
+                      <button
+                        onClick={() => handleTabChange("rewards")}
+                        className={getButtonClass(tab === "rewards")}
+                        style={getButtonStyle(tab === "rewards")}
+                      >
+                        <Trophy size={16} /> <span>Recompensas</span>
+                      </button>
+                    )}
+                    {hasPermission('view_team_wall') && (
+                      <button
+                        onClick={() => handleTabChange("elogios")}
+                        className={getButtonClass(tab === "elogios")}
+                        style={getButtonStyle(tab === "elogios")}
+                      >
+                        <Handshake size={16} /> <span>Elogios</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleTabChange("notifications")}
+                      className={getButtonClass(tab === "notifications") + " relative"}
+                      style={getButtonStyle(tab === "notifications")}
+                    >
+                      <Bell size={16} /> <span>Notificações</span>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-4 text-center leading-none">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
