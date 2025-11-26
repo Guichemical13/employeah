@@ -2,96 +2,129 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Permissões padrão por role
+// Permissões padrão por role (baseado na matriz de permissões do sistema)
 export const DEFAULT_PERMISSIONS = {
+  COLLABORATOR: {
+    // Atualizações
+    view_personal_updates: true,           // Atualizações pessoais
+    view_company_updates: true,             // Atualizações da empresa
+    
+    // Elogios
+    view_team_wall: true,                   // Visualizar mural de elogios
+    send_compliment: true,                  // Enviar elogio
+    like_compliment_sent_by_self: true,     // Apagar elogio enviado por si
+    like_compliment_sent_by_others: false,  // Apagar elogio enviado por terceiro
+    
+    // Loja
+    view_store: true,                       // Visualizar Loja
+    add_items_to_cart: true,                // Adicionar itens no carrinho próprio
+    remove_items_from_cart: true,           // Apagar itens no carrinho próprio
+    insert_new_items_catalog: false,        // Inserir novos itens no catálogo
+    remove_items_catalog: false,            // Remover itens do catálogo
+    
+    // Gestão
+    view_users_menu: false,                 // Visualizar menu de Usuários
+    transfer_remove_users: false,           // Inserir/remover usuários
+    
+    // Analytics
+    view_analytics: true,                   // Visualizar menu Analytics
+    view_own_team_analytics: true,          // Analytics - dados próprios
+    view_other_teams_analytics: false,      // Analytics - dados do mesmo time
+    
+    // Sistema
+    view_system_surveys: false,             // Ver Surveys sobre o sistema
+    respond_system_surveys: true,           // Responder Surveys sobre o sistema
+    configure_own_profile: true,            // Configurar seu próprio perfil
+  },
   SUPERVISOR: {
-    // Visualizações pessoais
-    view_personal_updates: true,
-    view_company_updates: true,
-    view_team_wall: true,
-    send_compliment: true,
-    like_compliment_sent_by_self: true,
-    like_compliment_sent_by_others: false,
-    view_store: true,
-    add_items_to_cart: true,
-    remove_items_from_cart: true,
-    view_users_menu: false,
-    transfer_remove_users: false,
-    insert_new_items_catalog: false,
-    remove_items_catalog: false,
-    view_analytics: true,
-    view_own_team_analytics: true,
-    view_other_teams_analytics: false,
-    view_system_surveys: false,
-    configure_own_profile: true,
-    respond_system_surveys: true,
+    // Atualizações
+    view_personal_updates: true,            // Atualizações pessoais
+    view_company_updates: true,             // Atualizações da empresa
+    
+    // Elogios
+    view_team_wall: true,                   // Visualizar mural de elogios
+    send_compliment: true,                  // Enviar elogio
+    like_compliment_sent_by_self: true,     // Apagar elogio enviado por si
+    like_compliment_sent_by_others: true,   // Apagar elogio enviado por terceiro
+    
+    // Loja
+    view_store: true,                       // Visualizar Loja
+    add_items_to_cart: true,                // Adicionar itens no carrinho próprio
+    remove_items_from_cart: true,           // Apagar itens no carrinho próprio
+    insert_new_items_catalog: false,        // Inserir novos itens no catálogo
+    remove_items_catalog: false,            // Remover itens do catálogo
+    
+    // Gestão
+    view_users_menu: true,                  // Visualizar menu de Usuários
+    transfer_remove_users: false,           // Inserir/remover usuários
+    
+    // Analytics
+    view_analytics: true,                   // Visualizar menu Analytics
+    view_own_team_analytics: true,          // Analytics - dados próprios
+    view_other_teams_analytics: true,       // Analytics - dados do mesmo time
+    
+    // Sistema
+    view_system_surveys: false,             // Ver Surveys sobre o sistema
+    respond_system_surveys: true,           // Responder Surveys sobre o sistema
+    configure_own_profile: true,            // Configurar seu próprio perfil
   },
   COMPANY_ADMIN: {
-    view_personal_updates: true,
-    view_company_updates: true,
-    view_team_wall: true,
-    send_compliment: true,
-    like_compliment_sent_by_self: true,
-    like_compliment_sent_by_others: true,
-    view_store: true,
-    add_items_to_cart: true,
-    remove_items_from_cart: true,
-    view_users_menu: true,
-    transfer_remove_users: true,
-    insert_new_items_catalog: true,
-    remove_items_catalog: true,
-    view_analytics: true,
-    view_own_team_analytics: true,
-    view_other_teams_analytics: true,
-    view_system_surveys: false,
-    configure_own_profile: true,
-    respond_system_surveys: true,
-  },
-  COLLABORATOR: {
-    view_personal_updates: true,
-    view_company_updates: true,
-    view_team_wall: true,
-    send_compliment: true,
-    like_compliment_sent_by_self: true,
-    like_compliment_sent_by_others: false,
-    view_store: true,
-    add_items_to_cart: true,
-    remove_items_from_cart: true,
-    view_users_menu: false,
-    transfer_remove_users: false,
-    insert_new_items_catalog: false,
-    remove_items_catalog: false,
-    view_analytics: true,
-    view_own_team_analytics: false,
-    view_other_teams_analytics: false,
-    view_system_surveys: false,
-    configure_own_profile: true,
-    respond_system_surveys: true,
+    // Atualizações
+    view_personal_updates: true,            // Atualizações pessoais
+    view_company_updates: true,             // Atualizações da empresa
+    
+    // Elogios
+    view_team_wall: true,                   // Visualizar mural de elogios
+    send_compliment: true,                  // Enviar elogio
+    like_compliment_sent_by_self: true,     // Apagar elogio enviado por si
+    like_compliment_sent_by_others: true,   // Apagar elogio enviado por terceiro
+    
+    // Loja
+    view_store: true,                       // Visualizar Loja
+    add_items_to_cart: true,                // Adicionar itens no carrinho próprio
+    remove_items_from_cart: true,           // Apagar itens no carrinho próprio
+    insert_new_items_catalog: true,         // Inserir novos itens no catálogo
+    remove_items_catalog: true,             // Remover itens do catálogo
+    
+    // Gestão
+    view_users_menu: true,                  // Visualizar menu de Usuários
+    transfer_remove_users: true,            // Inserir/remover usuários
+    
+    // Analytics
+    view_analytics: true,                   // Visualizar menu Analytics
+    view_own_team_analytics: true,          // Analytics - dados próprios
+    view_other_teams_analytics: true,       // Analytics - dados de outros times
+    
+    // Sistema
+    view_system_surveys: false,             // Ver Surveys sobre o sistema
+    respond_system_surveys: true,           // Responder Surveys sobre o sistema
+    configure_own_profile: true,            // Configurar seu próprio perfil
   },
   SUPER_ADMIN: {
+    // SUPER_ADMIN tem todas as permissões habilitadas
     view_personal_updates: true,
     view_company_updates: true,
     view_team_wall: true,
-    send_compliment: true,
-    like_compliment_sent_by_self: true,
-    like_compliment_sent_by_others: true,
-    view_store: true,
-    add_items_to_cart: true,
-    remove_items_from_cart: true,
-    view_users_menu: true,
-    transfer_remove_users: true,
-    insert_new_items_catalog: true,
-    remove_items_catalog: true,
-    view_analytics: true,
-    view_own_team_analytics: true,
-    view_other_teams_analytics: true,
-    view_system_surveys: true,
-    configure_own_profile: true,
-    respond_system_surveys: true,
+    send_compliment: false,                 // Super Admin não envia elogios
+    like_compliment_sent_by_self: false,    // Super Admin não apaga elogios próprios
+    like_compliment_sent_by_others: true,   // Super Admin pode moderar elogios de terceiros
+    view_store: false,                      // Super Admin não visualiza loja
+    add_items_to_cart: false,               // Super Admin não adiciona ao carrinho
+    remove_items_from_cart: false,          // Super Admin não remove do carrinho
+    insert_new_items_catalog: false,        // Super Admin não insere itens
+    remove_items_catalog: false,            // Super Admin não remove itens
+    view_users_menu: true,                  // Visualizar menu de Usuários
+    transfer_remove_users: true,            // Inserir/remover usuários
+    view_analytics: true,                   // Visualizar menu Analytics
+    view_own_team_analytics: false,         // Super Admin não tem analytics próprios
+    view_other_teams_analytics: false,      // Super Admin não vê analytics de times
+    view_system_surveys: true,              // Ver Surveys sobre o sistema
+    respond_system_surveys: false,          // Super Admin não responde surveys
+    configure_own_profile: true,            // Configurar seu próprio perfil
   },
 };
 
-export type PermissionKey = keyof typeof DEFAULT_PERMISSIONS.SUPERVISOR;
+export type PermissionKey = keyof typeof DEFAULT_PERMISSIONS.COLLABORATOR;
 
 /**
  * Verifica se um usuário tem uma permissão específica

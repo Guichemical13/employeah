@@ -71,6 +71,8 @@ export default function Login() {
                         const data = await res.json();
                         if (data.user?.role === 'SUPER_ADMIN' || data.user?.role === 'COMPANY_ADMIN') {
                             window.location.href = "/app/admin";
+                        } else if (data.user?.role === 'SUPERVISOR') {
+                            window.location.href = "/app/supervisor";
                         } else {
                             window.location.href = "/app";
                         }
@@ -110,6 +112,8 @@ export default function Login() {
             // Redireciona imediatamente
             if (data.role === 'SUPER_ADMIN' || data.role === 'COMPANY_ADMIN') {
                 window.location.href = "/app/admin";
+            } else if (data.role === 'SUPERVISOR') {
+                window.location.href = "/app/supervisor";
             } else {
                 window.location.href = "/app";
             }

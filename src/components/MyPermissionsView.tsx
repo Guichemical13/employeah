@@ -5,25 +5,31 @@ import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
 
 const PERMISSION_LABELS: Record<string, { label: string; description: string; category: string }> = {
-  view_personal_updates: { label: "Ver atualizações pessoais", description: "Visualizar próprias atualizações", category: "Visualizações" },
-  view_company_updates: { label: "Ver atualizações da empresa", description: "Visualizar atualizações corporativas", category: "Visualizações" },
-  view_team_wall: { label: "Ver mural do time", description: "Acessar mural de elogios", category: "Visualizações" },
-  send_compliment: { label: "Enviar elogio", description: "Enviar elogios para outros", category: "Elogios" },
-  like_compliment_sent_by_self: { label: "Curtir elogio próprio", description: "Curtir elogios enviados por si", category: "Elogios" },
-  like_compliment_sent_by_others: { label: "Curtir elogio de terceiros", description: "Curtir elogios de outros", category: "Elogios" },
-  view_store: { label: "Visualizar loja", description: "Acessar catálogo de itens", category: "Loja" },
-  add_items_to_cart: { label: "Adicionar itens no carrinho", description: "Adicionar itens ao carrinho próprio", category: "Loja" },
-  remove_items_from_cart: { label: "Apagar itens do carrinho", description: "Remover itens do carrinho próprio", category: "Loja" },
+  // Atualizações
+  view_personal_updates: { label: "Atualizações pessoais", description: "Visualizar próprias atualizações e notificações", category: "Visualizações" },
+  view_company_updates: { label: "Atualizações da empresa", description: "Visualizar atualizações corporativas", category: "Visualizações" },
+  
+  // Elogios
+  view_team_wall: { label: "Visualizar mural de elogios", description: "Acessar mural de elogios da equipe", category: "Elogios" },
+  send_compliment: { label: "Enviar elogio", description: "Enviar elogios para outros usuários", category: "Elogios" },
+  like_compliment_sent_by_self: { label: "Apagar elogio enviado por si", description: "Remover elogios enviados por você", category: "Elogios" },
+  like_compliment_sent_by_others: { label: "Apagar elogio enviado por terceiro", description: "Moderar e remover elogios de outros", category: "Elogios" },
+  
+  // Loja
+  view_store: { label: "Visualizar Loja", description: "Acessar catálogo de recompensas", category: "Loja" },
+  add_items_to_cart: { label: "Adicionar itens no carrinho próprio", description: "Adicionar itens ao seu carrinho", category: "Loja" },
+  remove_items_from_cart: { label: "Apagar itens no carrinho próprio", description: "Remover itens do seu carrinho", category: "Loja" },
+  insert_new_items_catalog: { label: "Inserir novos itens no catálogo", description: "Adicionar produtos à loja", category: "Loja" },
+  remove_items_catalog: { label: "Remover itens do catálogo", description: "Remover produtos da loja", category: "Loja" },
+  
+  // Gestão
   view_users_menu: { label: "Visualizar menu de Usuários", description: "Acessar menu de gerenciamento de usuários", category: "Gestão" },
-  transfer_remove_users: { label: "Transferir/remover usuários", description: "Gerenciar usuários do sistema", category: "Gestão" },
-  insert_new_items_catalog: { label: "Inserir novos itens no catálogo", description: "Adicionar produtos à loja", category: "Gestão" },
-  remove_items_catalog: { label: "Remover itens do catálogo", description: "Remover produtos da loja", category: "Gestão" },
+  transfer_remove_users: { label: "Inserir/remover usuários", description: "Gerenciar usuários do sistema", category: "Gestão" },
+  
+  // Analytics
   view_analytics: { label: "Visualizar menu Analytics", description: "Acessar relatórios e métricas", category: "Analytics" },
-  view_own_team_analytics: { label: "Analytics - dados próprios", description: "Ver analytics do próprio time", category: "Analytics" },
-  view_other_teams_analytics: { label: "Analytics - dados de outros times", description: "Ver analytics de outros times", category: "Analytics" },
-  view_system_surveys: { label: "Ver Surveys sobre o sistema", description: "Acessar pesquisas do sistema", category: "Sistema" },
-  configure_own_profile: { label: "Configurar seu próprio perfil", description: "Editar dados pessoais", category: "Sistema" },
-  respond_system_surveys: { label: "Responder Surveys sobre o sistema", description: "Participar de pesquisas", category: "Sistema" },
+  view_own_team_analytics: { label: "Analytics - dados próprios", description: "Ver analytics pessoais e do próprio time", category: "Analytics" },
+  view_other_teams_analytics: { label: "Analytics - dados de outros times", description: "Ver analytics de outros times da empresa", category: "Analytics" },
 };
 
 export default function MyPermissionsView() {

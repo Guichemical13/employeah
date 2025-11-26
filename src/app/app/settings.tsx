@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -10,8 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import PasswordValidator, { usePasswordValidation } from "@/components/PasswordValidator";
-import MyPermissionsView from "@/components/MyPermissionsView";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { User } from "@/types/models";
 
 const profileSchema = z.object({
@@ -144,84 +141,13 @@ export default function SettingsTab() {
 
   return (
     <div className="space-y-6">
-      {user?.role === "SUPERVISOR" || user?.role === "COLLABORATOR" ? (
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="profile">Perfil</TabsTrigger>
-            <TabsTrigger value="permissions">Minhas Permissões</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="profile">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="font-bold text-xl mb-4">Perfil do Usuário</div>
-              {loading ? (
-                <div className="text-gray-400">Carregando...</div>
-              ) : user ? (
-                <div className="space-y-4">
-                  {user.profilePicture && (
-                    <div className="flex justify-center mb-4">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={user.profilePicture} 
-                        alt={user.name}
-                        className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                      />
-                    </div>
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-500">Nome</div>
-                      <div className="font-medium">{user.name}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Email</div>
-                      <div className="font-medium">{user.email}</div>
-                    </div>
-                    {user.username && (
-                      <div>
-                        <div className="text-sm text-gray-500">Username</div>
-                        <div className="font-medium">@{user.username}</div>
-                      </div>
-                    )}
-                    <div>
-                      <div className="text-sm text-gray-500">Empresa ID</div>
-                      <div className="font-medium">{user.companyId || "-"}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Role</div>
-                      <div className="font-medium">{user.role}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Pontos</div>
-                      <div className="font-medium">{user.points} pts</div>
-                    </div>
-                  </div>
-                  {user.bio && (
-                    <div>
-                      <div className="text-sm text-gray-500">Bio</div>
-                      <div className="font-medium">{user.bio}</div>
-                    </div>
-                  )}
-                  <div className="flex gap-2 mt-4 pt-4 border-t">
-                    <Button onClick={handleOpenEdit}>Editar Perfil</Button>
-                    <Button variant="outline" onClick={handleOpenPasswordChange}>Alterar Senha</Button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="permissions">
-            <MyPermissionsView />
-          </TabsContent>
-        </Tabs>
-      ) : (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="font-bold text-xl mb-4">Perfil do Usuário</div>
-          {loading ? (
-            <div className="text-gray-400">Carregando...</div>
-          ) : user ? (
-            <div className="space-y-4">{user.profilePicture && (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="font-bold text-xl mb-4">Perfil do Usuário</div>
+        {loading ? (
+          <div className="text-gray-400">Carregando...</div>
+        ) : user ? (
+          <div className="space-y-4">
+            {user.profilePicture && (
               <div className="flex justify-center mb-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
@@ -270,11 +196,9 @@ export default function SettingsTab() {
               <Button variant="outline" onClick={handleOpenPasswordChange}>Alterar Senha</Button>
             </div>
           </div>
-          ) : (
-            <div className="text-gray-400">Usuário não encontrado.</div>
-          )}
-        </div>
-      )}
+        ) : null}
+      </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

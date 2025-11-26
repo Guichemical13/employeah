@@ -10,6 +10,11 @@ import RewardsTab from "../rewards";
 import ComplimentsTab from "../compliments";
 import NotificationsTab from "../notifications";
 import SettingsTab from "../settings";
+import UsersTab from "../admin/users";
+import ItemsTab from "../admin/items";
+import CategoriesTab from "../admin/categories";
+import PointsTab from "../admin/points";
+import ElogiosTab from "../admin/elogios";
 
 interface Team {
   id: number;
@@ -50,7 +55,12 @@ export default function SupervisorPanel() {
 
           // Verificar se é supervisor
           if (data.user.role !== "SUPERVISOR") {
-            router.push("/app/app");
+            // Redireciona para a rota apropriada baseada na role
+            if (data.user.role === "SUPER_ADMIN" || data.user.role === "COMPANY_ADMIN") {
+              router.push("/app/admin");
+            } else {
+              router.push("/app");
+            }
             return;
           }
 
@@ -115,6 +125,7 @@ export default function SupervisorPanel() {
         tab={tab}
         setTab={setTab}
         onLogout={handleLogout}
+        showAdminTabs={true}
         userRole={user?.role}
         userProfile={user ? {
           id: user.id,
@@ -195,6 +206,11 @@ export default function SupervisorPanel() {
             <TeamManagementTab teamId={selectedTeam} />
           )}
           
+          {tab === "usuarios" && <UsersTab />}
+          {tab === "itens" && <ItemsTab />}
+          {tab === "categorias" && <CategoriesTab />}
+          {tab === "pontos" && <PointsTab />}
+          {tab === "elogios-admin" && <ElogiosTab />}
           {tab === "rewards" && <RewardsTab />}
           {tab === "elogios" && <ComplimentsTab />}
           {tab === "notifications" && <NotificationsTab isAdminView={false} currentUser={user} />}
