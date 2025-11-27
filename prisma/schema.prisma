@@ -37,6 +37,8 @@ model User {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   mustChangePassword Boolean            @default(false)
+  resetCode          String?            @db.VarChar(6)
+  resetCodeExpires   DateTime?
   elogiosDados       Elogio[]           @relation("ElogiosEnviados")
   elogios            Elogio[]           @relation("ElogiosRecebidos")
   notifications      Notification[]
