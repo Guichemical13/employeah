@@ -81,8 +81,7 @@ export default function RequestQuotePage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     
     // Simular envio do formulário
@@ -276,7 +275,7 @@ export default function RequestQuotePage() {
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={(e) => e.preventDefault()}>
                 {/* Step 1: Informações da Empresa */}
                 {currentStep === 1 && (
                   <Card className="border-2 border-[#03BBAF]/20 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -602,9 +601,10 @@ export default function RequestQuotePage() {
                     </Button>
                   ) : (
                     <Button 
-                      type="submit"
+                      type="button"
                       size="lg"
-                      disabled={isSubmitting || !isStepValid()}
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
                       className="flex-1 md:flex-none md:w-48 h-12 bg-gradient-to-r from-[#026876] to-[#03BBAF] hover:from-[#026876]/90 hover:to-[#03BBAF]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
                     >
                       {isSubmitting ? (
