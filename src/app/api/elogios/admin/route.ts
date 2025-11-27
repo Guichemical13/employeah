@@ -9,7 +9,7 @@ import { verifyToken } from '@/lib/auth';
  */
 export async function GET(req: NextRequest) {
   const user = await verifyToken(req);
-  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes((user as any).role)) {
+  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN', 'SUPERVISOR'].includes((user as any).role)) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
 
@@ -25,6 +25,23 @@ export async function GET(req: NextRequest) {
       where.OR = [
         { from: { companyId: (user as any).companyId } },
         { to: { companyId: (user as any).companyId } }
+      ];
+    }
+
+    // SUPERVISOR só vê elogios dos membros de seus times
+    if ((user as any).role === 'SUPERVISOR') {
+      const supervisorTeams = await prisma.team.findMany({
+        where: {
+          supervisors: { some: { id: (user as any).id } }
+        },
+        include: { members: { select: { id: true } } }
+      });
+
+      const teamMemberIds = supervisorTeams.flatMap(team => team.members.map(m => m.id));
+      
+      where.OR = [
+        { fromId: { in: teamMemberIds } },
+        { toId: { in: teamMemberIds } }
       ];
     }
 

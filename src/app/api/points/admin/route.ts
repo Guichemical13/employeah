@@ -10,7 +10,7 @@ import { z } from 'zod';
  */
 export async function POST(req: NextRequest) {
   const user = await verifyToken(req);
-  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes((user as any).role)) {
+  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN', 'SUPERVISOR'].includes((user as any).role)) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
 
@@ -46,6 +46,22 @@ export async function POST(req: NextRequest) {
     if ((user as any).role === 'COMPANY_ADMIN') {
       if (targetUser.companyId !== (user as any).companyId) {
         return NextResponse.json({ error: 'Acesso negado a este usuário' }, { status: 403 });
+      }
+    }
+
+    // SUPERVISOR só pode gerenciar pontos dos membros de seus times
+    if ((user as any).role === 'SUPERVISOR') {
+      const supervisorTeams = await prisma.team.findMany({
+        where: {
+          supervisors: { some: { id: (user as any).id } }
+        },
+        include: { members: { select: { id: true } } }
+      });
+
+      const teamMemberIds = supervisorTeams.flatMap(team => team.members.map(m => m.id));
+      
+      if (!teamMemberIds.includes(userId)) {
+        return NextResponse.json({ error: 'Acesso negado. Você só pode gerenciar pontos dos membros do seu time.' }, { status: 403 });
       }
     }
 
@@ -119,7 +135,7 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   const user = await verifyToken(req);
-  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes((user as any).role)) {
+  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN', 'SUPERVISOR'].includes((user as any).role)) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
 
@@ -136,6 +152,19 @@ export async function GET(req: NextRequest) {
     // COMPANY_ADMIN só vê transações da sua empresa
     if ((user as any).role === 'COMPANY_ADMIN') {
       where.companyId = (user as any).companyId;
+    }
+
+    // SUPERVISOR só vê transações dos membros de seus times
+    if ((user as any).role === 'SUPERVISOR') {
+      const supervisorTeams = await prisma.team.findMany({
+        where: {
+          supervisors: { some: { id: (user as any).id } }
+        },
+        include: { members: { select: { id: true } } }
+      });
+
+      const teamMemberIds = supervisorTeams.flatMap(team => team.members.map(m => m.id));
+      where.userId = { in: teamMemberIds };
     }
 
     // Filtrar por usuário específico se fornecido

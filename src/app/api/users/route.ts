@@ -29,6 +29,29 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { name: 'asc' }
       });
+    } else if ((user as any).role === 'SUPERVISOR') {
+      // SUPERVISOR vê apenas membros dos seus times
+      const supervisorTeams = await prisma.team.findMany({
+        where: {
+          supervisors: { some: { id: (user as any).id } }
+        },
+        include: { members: { select: { id: true } } }
+      });
+
+      const teamMemberIds = supervisorTeams.flatMap(team => team.members.map(m => m.id));
+
+      users = await prisma.user.findMany({
+        where: { id: { in: teamMemberIds } },
+        include: {
+          company: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
+        orderBy: { name: 'asc' }
+      });
     } else {
       users = await prisma.user.findMany({ 
         where: { companyId: (user as any).companyId },
