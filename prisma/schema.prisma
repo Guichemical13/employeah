@@ -63,14 +63,18 @@ model Category {
 }
 
 model Item {
-  id         Int       @id @default(autoincrement())
-  name       String
-  price      Int
-  stock      Int
-  companyId  Int
-  categoryId Int?
-  category   Category? @relation(fields: [categoryId], references: [id])
-  company    Company   @relation(fields: [companyId], references: [id])
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?   @db.VarChar(1000)
+  imageUrl    String?   @db.VarChar(500)
+  price       Int
+  stock       Int
+  companyId   Int
+  categoryId  Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  category    Category? @relation(fields: [categoryId], references: [id])
+  company     Company   @relation(fields: [companyId], references: [id])
 
   @@index([categoryId])
   @@index([companyId])

@@ -7,10 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormField,
@@ -18,33 +18,56 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Search, Plus, Edit, Trash2, Package, ImageIcon } from "lucide-react";
 import type { Item, Category, Company } from "@/types/models";
 
 const itemSchema = z.object({
-  name: z.string().min(2, "Nome obrigatório"),
-  price: z.coerce.number().min(1, "Preço obrigatório"),
-  stock: z.coerce.number().min(0, "Estoque obrigatório"),
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  description: z.string().optional(),
+  imageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  price: z.coerce.number().min(0, "Preço deve ser maior ou igual a 0"),
+  stock: z.coerce.number().min(0, "Estoque deve ser maior ou igual a 0"),
   categoryId: z.string().optional(),
-  companyId: z.string().optional(), // será validado manualmente para SUPER_ADMIN
+  companyId: z.string().optional(),
+  newCategoryName: z.string().optional(),
 });
 type ItemForm = z.infer<typeof itemSchema>;
 
+interface ItemWithRelations extends Item {
+  category?: { name: string };
+  company?: { name: string };
+}
+
 export default function ItemsTab() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemWithRelations[]>([]);
+  const [filteredItems, setFilteredItems] = useState<ItemWithRelations[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [userRole, setUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editItem, setEditItem] = useState<Item | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [showNewCategory, setShowNewCategory] = useState(false);
 
   const form = useForm<ItemForm>({
     resolver: zodResolver(itemSchema),
-    defaultValues: { name: "", price: 1, stock: 0, categoryId: "", companyId: "" },
+    defaultValues: { 
+      name: "", 
+      description: "",
+      imageUrl: "",
+      price: 0, 
+      stock: 0, 
+      categoryId: "", 
+      companyId: "",
+      newCategoryName: ""
+    },
   });
 
   useEffect(() => {
@@ -53,19 +76,38 @@ export default function ItemsTab() {
     fetchUserRoleAndCompanies();
   }, []);
 
+  useEffect(() => {
+    let filtered = items;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (selectedCategory) {
+      filtered = filtered.filter(item => 
+        item.categoryId === Number(selectedCategory)
+      );
+    }
+    
+    setFilteredItems(filtered);
+  }, [searchTerm, selectedCategory, items]);
+
   async function fetchItems() {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    console.log("[admin items] token:", token);
     const res = await fetch("/api/items", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    setItems(await res.json());
+    const data = await res.json();
+    setItems(data);
+    setFilteredItems(data);
     setLoading(false);
   }
 
   async function fetchCategories() {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    console.log("[admin items categories] token:", token);
     const res = await fetch("/api/categories", {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -74,12 +116,10 @@ export default function ItemsTab() {
 
   async function fetchUserRoleAndCompanies() {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    // Busca o papel do usuário
     const resMe = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
     const me = await resMe.json();
     setUserRole(me.user?.role || "");
     if (me.user?.role === "SUPER_ADMIN") {
-      // Busca empresas
       const res = await fetch("/api/companies", { headers: { Authorization: `Bearer ${token}` } });
       setCompanies(await res.json());
     }
@@ -87,18 +127,32 @@ export default function ItemsTab() {
 
   function handleOpenCreate() {
     setEditItem(null);
-    form.reset({ name: "", price: 1, stock: 0, categoryId: "", companyId: "" });
+    setShowNewCategory(false);
+    form.reset({ 
+      name: "", 
+      description: "",
+      imageUrl: "",
+      price: 0, 
+      stock: 0, 
+      categoryId: "", 
+      companyId: "",
+      newCategoryName: ""
+    });
     setOpen(true);
   }
 
-  function handleOpenEdit(item: Item) {
+  function handleOpenEdit(item: ItemWithRelations) {
     setEditItem(item);
+    setShowNewCategory(false);
     form.reset({
       name: item.name,
+      description: item.description || "",
+      imageUrl: item.imageUrl || "",
       price: item.price,
       stock: item.stock,
       categoryId: item.categoryId?.toString() || "",
       companyId: item.companyId?.toString() || "",
+      newCategoryName: ""
     });
     setOpen(true);
   }
@@ -106,9 +160,20 @@ export default function ItemsTab() {
   async function onSubmit(values: ItemForm) {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     let payload: any = {
-      ...values,
-      categoryId: values.categoryId ? Number(values.categoryId) : undefined,
+      name: values.name,
+      description: values.description || null,
+      imageUrl: values.imageUrl || null,
+      price: values.price,
+      stock: values.stock,
     };
+    
+    // Se está criando nova categoria
+    if (showNewCategory && values.newCategoryName) {
+      payload.createCategory = values.newCategoryName;
+    } else if (values.categoryId) {
+      payload.categoryId = Number(values.categoryId);
+    }
+    
     if (userRole === "SUPER_ADMIN") {
       if (!values.companyId) {
         alert("Selecione uma empresa!");
@@ -116,74 +181,162 @@ export default function ItemsTab() {
       }
       payload.companyId = Number(values.companyId);
     } else if (userRole === "COMPANY_ADMIN") {
-      // Sempre pega o companyId do usuário logado
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       const resMe = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
       const me = await resMe.json();
       payload.companyId = me.user?.companyId;
     }
-    if (editItem) {
-      console.log("[admin items update] token:", token);
-      await fetch(`/api/items/${editItem.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      console.log("[admin items create] token:", token);
-      await fetch("/api/items", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+    
+    try {
+      if (editItem) {
+        await fetch(`/api/items/${editItem.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetch("/api/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+      setOpen(false);
+      fetchItems();
+      fetchCategories(); // Atualiza categorias se criou uma nova
+    } catch (error) {
+      alert("Erro ao salvar item");
     }
-    setOpen(false);
-    fetchItems();
   }
 
-  async function handleDelete(itemId: Item["id"]) {
+  async function handleDelete(itemId: number) {
+    if (!confirm("Tem certeza que deseja excluir este item?")) return;
+    
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    console.log("[admin items delete] token:", token);
-    await fetch(`/api/items/${itemId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchItems();
+    try {
+      await fetch(`/api/items/${itemId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchItems();
+    } catch (error) {
+      alert("Erro ao excluir item");
+    }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-2">
-        <div className="font-bold text-lg">Itens</div>
-        <Button onClick={handleOpenCreate}>Novo Item</Button>
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Itens</h1>
+          <p className="text-gray-500 text-sm">Gerencie os itens da loja</p>
+        </div>
+        <Button onClick={handleOpenCreate} className="w-full sm:w-auto">
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Item
+        </Button>
       </div>
-      {loading ? (
-        <div className="text-gray-400">Carregando...</div>
-      ) : items.length === 0 ? (
-        <div className="text-gray-400">Nenhum item encontrado.</div>
-      ) : (
-        <ul className="space-y-2">
-          {items.map((i) => (
-            <li key={i.id} className="bg-white rounded shadow p-4 flex justify-between items-center">
-              <span>{i.name} (R$ {i.price}) - Estoque: {i.stock}</span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => handleOpenEdit(i)}>Editar</Button>
-                <Button size="sm" variant="destructive" onClick={() => handleDelete(i.id)}>Excluir</Button>
-              </div>
-            </li>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Buscar itens..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="border rounded p-2"
+        >
+          <option value="">Todas as categorias</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
-        </ul>
+        </select>
+      </div>
+
+      {/* Items Grid */}
+      {loading ? (
+        <div className="text-center py-12 text-gray-400">Carregando...</div>
+      ) : filteredItems.length === 0 ? (
+        <div className="text-center py-12">
+          <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-400">Nenhum item encontrado.</p>
+          <Button onClick={handleOpenCreate} variant="outline" className="mt-4">
+            Criar primeiro item
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredItems.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+            >
+              {/* Image */}
+              <div className="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
+                {item.imageUrl ? (
+                  <img 
+                    src={item.imageUrl} 
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <ImageIcon className="h-12 w-12 text-gray-300" />
+                )}
+              </div>
+              
+              {/* Content */}
+              <div className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-gray-900 truncate">{item.name}</h3>
+                    {item.category && (
+                      <p className="text-xs text-gray-500">{item.category.name}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => handleOpenEdit(item)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {item.description && (
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                )}
+                
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold text-purple-700">{item.price} pts</span>
+                  <span className="text-gray-500">Estoque: {item.stock}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
+
+      {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editItem ? "Editar Item" : "Novo Item"}</DialogTitle>
+            <DialogTitle>
+              {editItem ? "Editar Item" : "Novo Item"}
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
@@ -195,58 +348,142 @@ export default function ItemsTab() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome</FormLabel>
+                    <FormLabel>Nome do Item</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="Ex: Mouse Gamer" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
-                name="price"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preço</FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Textarea 
+                        placeholder="Descrição detalhada do item..." 
+                        {...field}
+                        rows={3}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
-                name="stock"
+                name="imageUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estoque</FormLabel>
+                    <FormLabel>URL da Imagem</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input 
+                        placeholder="https://exemplo.com/imagem.jpg" 
+                        {...field}
+                      />
                     </FormControl>
+                    <FormDescription>
+                      Cole o link de uma imagem hospedada na web
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full border rounded px-2 py-1">
-                        <option value="">Selecione a categoria</option>
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço (Pontos)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="0" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="stock"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estoque</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="0" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Category Selection or Creation */}
+              <div className="space-y-2">
+                <FormLabel>Categoria</FormLabel>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={!showNewCategory ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setShowNewCategory(false)}
+                  >
+                    Selecionar existente
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={showNewCategory ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setShowNewCategory(true)}
+                  >
+                    Criar nova
+                  </Button>
+                </div>
+                
+                {!showNewCategory ? (
+                  <FormField
+                    control={form.control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <select {...field} className="w-full border rounded p-2">
+                            <option value="">Sem categoria</option>
+                            {categories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="newCategoryName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Nome da nova categoria" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          A categoria será criada automaticamente
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
+              </div>
+              
               {userRole === "SUPER_ADMIN" && (
                 <FormField
                   control={form.control}
@@ -255,7 +492,7 @@ export default function ItemsTab() {
                     <FormItem>
                       <FormLabel>Empresa</FormLabel>
                       <FormControl>
-                        <select {...field} className="w-full border rounded px-2 py-1">
+                        <select {...field} className="w-full border rounded p-2">
                           <option value="">Selecione a empresa</option>
                           {companies.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
@@ -267,13 +504,16 @@ export default function ItemsTab() {
                   )}
                 />
               )}
-              <DialogFooter>
-                <Button type="submit">Salvar</Button>
+              
+              <DialogFooter className="gap-2">
                 <DialogClose asChild>
                   <Button type="button" variant="outline">
                     Cancelar
                   </Button>
                 </DialogClose>
+                <Button type="submit">
+                  {editItem ? "Salvar" : "Criar"}
+                </Button>
               </DialogFooter>
             </form>
           </Form>

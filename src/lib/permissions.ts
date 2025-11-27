@@ -51,8 +51,8 @@ export const DEFAULT_PERMISSIONS = {
     view_store: true,                       // Visualizar Loja
     add_items_to_cart: true,                // Adicionar itens no carrinho próprio
     remove_items_from_cart: true,           // Apagar itens no carrinho próprio
-    insert_new_items_catalog: false,        // Inserir novos itens no catálogo
-    remove_items_catalog: false,            // Remover itens do catálogo
+    insert_new_items_catalog: true,         // Inserir novos itens no catálogo
+    remove_items_catalog: true,             // Remover itens do catálogo
     
     // Gestão
     view_users_menu: true,                  // Visualizar menu de Usuários

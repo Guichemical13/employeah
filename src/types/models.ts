@@ -31,10 +31,14 @@ export interface Category {
 export interface Item {
   id: number;
   name: string;
+  description?: string;
+  imageUrl?: string;
   price: number;
   stock: number;
   companyId: number;
   categoryId?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PointTransaction {

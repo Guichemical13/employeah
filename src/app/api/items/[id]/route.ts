@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 /**
  * @route PATCH /api/items/[id]
- * @desc Edita item (COMPANY_ADMIN ou SUPERVISOR com permissão)
+ * @desc Edita item (COMPANY_ADMIN, SUPERVISOR ou usuário com permissão)
  * @access Private
  */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -21,9 +21,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // Verificar permissão para gerenciar catálogo
   const canManageCatalog = await hasPermission(userId, userRole, 'insert_new_items_catalog');
   
-  if (!canManageCatalog && !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes(userRole)) {
+  if (!canManageCatalog) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
+  
   const { id } = await params;
   const body = await req.json();
   const schema = z.object({ 
@@ -34,13 +35,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     stock: z.number().optional(), 
     categoryId: z.number().optional().nullable()
   });
+  
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
   }
   
-  // COMPANY_ADMIN só pode editar itens da sua empresa
-  if ((user as any).role === 'COMPANY_ADMIN') {
+  // Verificar se item pertence à empresa do usuário
+  if (userRole !== 'SUPER_ADMIN') {
     const item = await prisma.item.findUnique({ where: { id: Number(id) } });
     if (!item || item.companyId !== (user as any).companyId) {
       return NextResponse.json({ error: 'Acesso negado ao item' }, { status: 403 });
@@ -54,12 +56,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       category: { select: { name: true } }
     }
   });
+  
   return NextResponse.json(item);
 }
 
 /**
  * @route DELETE /api/items/[id]
- * @desc Remove item (COMPANY_ADMIN ou SUPERVISOR com permissão)
+ * @desc Remove item (COMPANY_ADMIN, SUPERVISOR ou usuário com permissão)
  * @access Private
  */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -74,13 +77,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   // Verificar permissão para remover itens do catálogo
   const canRemoveCatalog = await hasPermission(userId, userRole, 'remove_items_catalog');
   
-  if (!canRemoveCatalog && !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes(userRole)) {
+  if (!canRemoveCatalog) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
+  
   const { id } = await params;
   
-  // COMPANY_ADMIN só pode excluir itens da sua empresa
-  if ((user as any).role === 'COMPANY_ADMIN') {
+  // Verificar se item pertence à empresa do usuário
+  if (userRole !== 'SUPER_ADMIN') {
     const item = await prisma.item.findUnique({ where: { id: Number(id) } });
     if (!item || item.companyId !== (user as any).companyId) {
       return NextResponse.json({ error: 'Acesso negado ao item' }, { status: 403 });
