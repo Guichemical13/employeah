@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { hasPermission } from '@/lib/permissions';
 import { z } from 'zod';
 
 /**
  * @route PATCH /api/categories/[id]
- * @desc Edita categoria (COMPANY_ADMIN)
+ * @desc Edita categoria (COMPANY_ADMIN ou SUPERVISOR com permissão)
  * @access Private
  */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyToken(req);
-  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes((user as any).role)) {
+  if (!user) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  }
+  
+  const userId = (user as any).id;
+  const userRole = (user as any).role;
+  
+  // Verificar permissão para gerenciar catálogo
+  const canManageCatalog = await hasPermission(userId, userRole, 'insert_new_items_catalog');
+  
+  if (!canManageCatalog && !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes(userRole)) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
   const { id } = await params;
@@ -33,12 +44,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 /**
  * @route DELETE /api/categories/[id]
- * @desc Remove categoria (COMPANY_ADMIN)
+ * @desc Remove categoria (COMPANY_ADMIN ou SUPERVISOR com permissão)
  * @access Private
  */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyToken(req);
-  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes((user as any).role)) {
+  if (!user) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  }
+  
+  const userId = (user as any).id;
+  const userRole = (user as any).role;
+  
+  // Verificar permissão para remover itens do catálogo
+  const canRemoveCatalog = await hasPermission(userId, userRole, 'remove_items_catalog');
+  
+  if (!canRemoveCatalog && !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes(userRole)) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
   const { id } = await params;
