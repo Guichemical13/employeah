@@ -11,7 +11,7 @@ import bcrypt from 'bcryptjs';
  */
 export async function GET(req: NextRequest) {
   const user = await verifyToken(req);
-  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN', 'COLLABORATOR'].includes((user as any).role)) {
+  if (!user || !['COMPANY_ADMIN', 'SUPER_ADMIN', 'SUPERVISOR', 'COLLABORATOR'].includes((user as any).role)) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
   }
 
